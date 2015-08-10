@@ -1,3 +1,3 @@
 # meteoclima-android
 
-This is an opensource wheather app for android.
+This is an open source wheather app for android.
