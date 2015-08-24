@@ -115,7 +115,7 @@ public class MeteoclimaMainFragment extends Fragment implements
                              Bundle savedInstanceState) {
 
         if (rootView == null) {
-            rootView = inflater.inflate(R.layout.activity_meteoclima_main, container, false);
+            rootView = inflater.inflate(R.layout.fragment_main, container, false);
         }
 
         helper = new Helper(getActivity());
@@ -190,6 +190,10 @@ public class MeteoclimaMainFragment extends Fragment implements
     }
 
     public void updateLocationOnUi() {
+        setUpLocationClientIfNeeded();
+        if (!mLocationClient.isConnected()) {
+            mLocationClient.connect();
+        }
         if (mLocationClient.getLastLocation() == null) {
             locationTextView.setText(helper.getLastKnownLocation());
             if (!helper.getLastKnownLocation().equals("Waiting for location...")) {

@@ -29,8 +29,9 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="gr.qpc.meteoclimaandroid.MeteoclimaMainFragment"
-            android:label="MeteoclimaMainActivity" />
+            android:name="gr.qpc.meteoclimaandroid.MeteoclimaDetailsActivity"
+            android:label="@string/title_activity_meteoclima_details" >
+        </activity>
     </application>
 
 </manifest>

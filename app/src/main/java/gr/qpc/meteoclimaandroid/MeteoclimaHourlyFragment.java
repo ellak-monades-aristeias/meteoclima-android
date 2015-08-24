@@ -1,11 +1,13 @@
 package gr.qpc.meteoclimaandroid;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
@@ -166,6 +168,7 @@ public class MeteoclimaHourlyFragment extends Fragment {
                     if (sameDay) {
                         //put everything in hashmaps and then in an ArrayList to populate the listView
                         HashMap<String,String> map = new HashMap<String,String>();
+                        map.put("0", id);
                         map.put("1", formattedDate);
                         map.put("2", temp);
                         map.put("3", weatherImage);
@@ -180,13 +183,23 @@ public class MeteoclimaHourlyFragment extends Fragment {
                 e.printStackTrace();
             }
             chartCompleted = true;
-            MyArrayAdapter adapter = new MyArrayAdapter(getActivity(), list);
+            final MyArrayAdapter adapter = new MyArrayAdapter(getActivity(), list);
             spinnerHourly.setVisibility(View.GONE);
             if (rootView == null) {
                 rootView = getView();
             }
             ListView listView = (ListView) rootView.findViewById(R.id.listview_hourly);
             listView.setAdapter(adapter);
+
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Intent intent = new Intent(getActivity(), MeteoclimaDetailsActivity.class);
+                    intent.putExtra("id", adapter.getId(position));
+                    intent.putExtra("fragment", "hourly");
+                    startActivity(intent);
+                }
+            });
         }
     }
 }

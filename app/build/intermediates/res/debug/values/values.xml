@@ -249,6 +249,9 @@
     <string msgid="1788179980625863495" name="common_google_play_services_update_title">Update Google Play services</string>
     <string name="common_signin_button_text">Sign in</string>
     <string name="common_signin_button_text_long">Sign in with Google</string>
+    <!-- From: file:/home/spyros/Dropbox/Android/AndroidStudioProjects/MeteoclimaAndroid/app/src/main/res/values/strings.xml -->
+    <eat-comment/>
+    <string name="title_activity_meteoclima_details">Forecast\'s Details</string>
     <!-- From: file:/home/spyros/Dropbox/Android/AndroidStudioProjects/MeteoclimaAndroid/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.1.1/res/values/values.xml -->
     <eat-comment/>
     <style name="AlertDialog.AppCompat" parent="Base.AlertDialog.AppCompat"/>
