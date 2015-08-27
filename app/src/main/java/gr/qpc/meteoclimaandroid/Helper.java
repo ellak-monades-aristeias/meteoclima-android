@@ -1,15 +1,18 @@
 package gr.qpc.meteoclimaandroid;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -28,6 +31,7 @@ public class Helper {
 
     private static final String PREF_NAME = "MeteoclimaPreferences";
     private static final String LAST_KNOWN_LOCATION = "LAST_KNOWN_LOCATION";
+    private static final String WIDGET_UPDATE_INTERVAL_MINS_PREF = "WIDGET_UPDATE_INTERVAL_MINS_PREF";
 
     public Helper(Context context){
         ctx = context;
@@ -46,21 +50,23 @@ public class Helper {
 
     public String getLocationName(Location location) {
         String locality = "Waiting for location...";
-        try {
-            Geocoder geo = new Geocoder(ctx, Locale.getDefault());
-            List<Address> addresses = geo.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-            if (addresses.isEmpty()) {
-                locality = "Location not found.";
-            }
-            else {
-                if (addresses.size() > 0) {
-                    locality = addresses.get(0).getLocality();
-                    //store it to preferences
-                    storeLastKnownLocation(locality);
+        if (location != null) {
+            try {
+                Geocoder geo = new Geocoder(ctx, Locale.getDefault());
+                List<Address> addresses = geo.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                if (addresses.isEmpty()) {
+                    locality = "Location not found.";
                 }
+                else {
+                    if (addresses.size() > 0) {
+                        locality = addresses.get(0).getLocality();
+                        //store it to preferences
+                        storeLastKnownLocation(locality);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
         return locality;
     }
@@ -74,11 +80,7 @@ public class Helper {
         if (retrievedForecasts != null) {
             return retrievedForecasts;
         } else {
-            try {
-                retrievedForecasts = new JSONArray("[{'error':'No forecasts available'}]");
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            retrievedForecasts = null;
         }
         return retrievedForecasts;
     }
@@ -166,7 +168,56 @@ public class Helper {
     }
 
     public String[] getForecastDescriptions() {
-        return new String[]{"Pressure (hPa)","Temperature (C)","Rain (mm)","Snow (mm)","Wind speed (m/s)","Wind direction (degrees)","Humidity (%)","Low clouds","Medium clouds","High clouds","landOrSea"};
+        return new String[]{"Pressure (hPa)","Temperature (℃)","Rain (mm)","Snow (mm)","Wind speed (m/s)","Wind direction (degrees)","Humidity (%)","Low clouds","Medium clouds","High clouds","landOrSea"};
+    }
+
+    public String formatTemperature(String temp) {
+        Double tempDouble = Double.parseDouble(temp);
+        return String.format("%.1f", tempDouble) + "℃";
+    }
+
+    public static Date getNearestDate(List<Date> dates, Date currentDate) {
+        long minDiff = -1, currentTime = currentDate.getTime();
+        Date minDate = null;
+        for (Date date : dates) {
+            long diff = Math.abs(currentTime - date.getTime());
+            if ((minDiff == -1) || (diff < minDiff)) {
+                minDiff = diff;
+                minDate = date;
+            }
+        }
+        return minDate;
+    }
+
+    public void setWidgetUpdateIntervalPref(int intervalInMinutes) {
+        editor.putInt(WIDGET_UPDATE_INTERVAL_MINS_PREF, intervalInMinutes * 60 * 1000);
+        editor.commit();
+    }
+
+    public int getWidgetUpdateIntervalPref() {
+        int interval = prefs.getInt(WIDGET_UPDATE_INTERVAL_MINS_PREF, 1800000) / 60 / 1000;
+        return interval;
+    }
+
+
+    public void scheduleWidgetUpdate(Context context) {
+        int interval = prefs.getInt(WIDGET_UPDATE_INTERVAL_MINS_PREF, 1800000);//default interval is 30 minutes
+        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        PendingIntent pi = getAlarmIntentForWidgetUpdate(context);
+        am.cancel(pi);
+        am.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis(), interval, pi);
+    }
+
+    private PendingIntent getAlarmIntentForWidgetUpdate(Context context) {
+        Intent intent = new Intent(context, MeteoclimaAppWidget.class);
+        intent.setAction(MeteoclimaAppWidget.ACTION_UPDATE);
+        PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 0);
+        return pi;
+    }
+
+    public void clearWidgetUpdate(Context context) {
+        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        am.cancel(getAlarmIntentForWidgetUpdate(context));
     }
 
 }

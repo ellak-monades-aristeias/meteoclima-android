@@ -103,11 +103,18 @@ public class MeteoclimaHourlyFragment extends Fragment {
         mCurrentRenderer.setPointStyle(PointStyle.CIRCLE);
         mCurrentRenderer.setLineWidth(6);
         mCurrentRenderer.setPointStrokeWidth(14);
+        mCurrentRenderer.setColor(Color.parseColor("#505050"));
         mRenderer.addSeriesRenderer(mCurrentRenderer);
-        mRenderer.setGridColor(Color.CYAN);
         mRenderer.setZoomEnabled(false);
         mRenderer.setMarginsColor(Color.WHITE);
         mRenderer.setShowLegend(false);
+        mRenderer.setApplyBackgroundColor(true);
+        mRenderer.setAxesColor(Color.BLACK);
+        mRenderer.setXLabelsColor(Color.WHITE);
+        mRenderer.setYLabelsColor(0, Color.RED);
+        mRenderer.setYLabelsPadding(-100);
+        mRenderer.setLabelsTextSize(35);
+        mRenderer.setBackgroundColor(0x300000FF);
     }
 
     private void addDataToChart(double y) {

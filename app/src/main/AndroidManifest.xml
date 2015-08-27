@@ -7,6 +7,7 @@
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="true"
@@ -25,6 +26,33 @@
         <activity
             android:name=".MeteoclimaDetailsActivity"
             android:label="@string/title_activity_meteoclima_details" >
+        </activity>
+
+        <receiver android:name=".MeteoclimaAppWidget" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/meteoclima_app_widget_info" />
+        </receiver>
+
+        <service
+            android:name=".MeteoclimaWidgetService"
+            android:label="@string/service_name" >
+        </service>
+
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true" >
+            <action android:name="android.intent.action.BOOT_COMPLETED" />
+        </receiver>
+
+        <activity
+            android:name=".MeteoclimaSettingsActivity"
+            android:label="@string/title_activity_meteoclima_settings" >
         </activity>
     </application>
 

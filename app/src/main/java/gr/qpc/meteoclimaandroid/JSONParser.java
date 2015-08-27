@@ -24,7 +24,6 @@ import java.util.List;
 /**
  * Created by spyros on 8/12/15.
  */
-@SuppressWarnings("ALL")
 public class JSONParser {
 
     static InputStream is = null;

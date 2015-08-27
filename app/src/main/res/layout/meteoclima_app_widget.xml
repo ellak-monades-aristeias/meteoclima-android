@@ -1,0 +1,57 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:padding="@dimen/widget_margin" android:background="@drawable/appwidget_bg" android:id="@+id/widgetBaseLayout">
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="top"
+        android:id="@+id/linearLayout1"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
+        <ImageView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginTop="3dp"
+            android:layout_marginBottom="3dp"
+            android:layout_marginLeft="10dp"
+            android:id="@+id/widgetImageView"
+            android:background="@drawable/na"/>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_gravity="center_vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Meteoclima"
+                android:id="@+id/appwidget_text"
+                android:textStyle="bold"
+                android:typeface="sans"
+                android:textColor="#2D4057"
+                android:layout_marginTop="3dp"
+                android:layout_marginLeft="10dp" />
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:typeface="sans"
+                android:textColor="#5D5D5D"
+                android:id="@+id/widgetDateTime"
+                android:layout_marginLeft="10dp" />
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text=""
+                android:textStyle="bold"
+                android:textColor="#2D4057"
+                android:id="@+id/widgetBasicWeather"
+                android:layout_marginLeft="10dp" />
+        </LinearLayout>
+    </LinearLayout>
+</RelativeLayout>

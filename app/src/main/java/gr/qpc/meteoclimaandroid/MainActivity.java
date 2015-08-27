@@ -1,5 +1,6 @@
 package gr.qpc.meteoclimaandroid;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
@@ -114,6 +115,8 @@ public class MainActivity extends ActionBarActivity implements
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent i = new Intent(this,MeteoclimaSettingsActivity.class);
+            startActivity(i);
             return true;
         }
 

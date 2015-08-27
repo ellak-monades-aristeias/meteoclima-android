@@ -1,7 +1,6 @@
 package gr.qpc.meteoclimaandroid;
 
 import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -36,8 +35,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -48,7 +45,6 @@ import java.util.TimeZone;
 
 import gr.qpc.meteoclimaandroid.adapters.MySimpleAdapter;
 
-@SuppressWarnings("ALL")
 public class MeteoclimaMainFragment extends Fragment implements
         ConnectionCallbacks,
         OnConnectionFailedListener,
@@ -59,17 +55,18 @@ public class MeteoclimaMainFragment extends Fragment implements
     private TextView locationTextView;
     private TextView dateTime;
     private ImageView imageView;
-    private Bitmap forecastBitmap;
     private LinearLayout spinner;
     private Helper helper;
     private ArrayList<HashMap<String, String>> retrievedLocationsList;
     private HashMap<String,String> results;
+    private DateFormat sdf;
+    private Map<Date,String> dates;
 
     // Creating JSON Parser object
-    JSONParser jParser = new JSONParser();
+    private JSONParser jParser = new JSONParser();
 
     // url to get the location list
-    private static String url_server = "http://83.212.85.153/~spyros/meteoclima/db_get_locations.php";
+    public static String url_server = "http://83.212.85.153/~spyros/meteoclima/db_get_locations.php";
 
     // JSON Node names
     public static final String TAG_SUCCESS = "success";
@@ -95,20 +92,48 @@ public class MeteoclimaMainFragment extends Fragment implements
     public static final String TAG_WIND_WAVE_IMAGE = "windWaveImage";
     public static final String TAG_LAND_OR_SEA = "landOrSea";
 
-    // products JSONArray
     JSONArray retrievedLocations = null;
 
-    // These settings are the same as the settings for the map. They will in fact give you updates
-    // at the maximal rates currently possible.
     private static final LocationRequest REQUEST = LocationRequest.create()
-            .setInterval(60000)         // 1 minute
-            .setFastestInterval(16)    // 16ms = 60fps
-            .setSmallestDisplacement(10)
+            .setInterval(60000) // 1 minute
+            .setFastestInterval(30000) // 30 seconds
+            .setSmallestDisplacement(100) // 100 meters
             .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
     private static final String TAG = "Meteoclima-MainActivity";
 
     private Location mLastLocation;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        helper = new Helper(getActivity());
+
+        // Hashmap for retrieved locations
+        // (I am passing the right map from inside this one to AsyncTask's onPostExecute and then to updateForecastOnUi).
+        retrievedLocationsList = new ArrayList<HashMap<String, String>>();
+
+        //build the SimpleDateFormat here to use it everywhere as it is
+        sdf = new SimpleDateFormat("yyyy MM dd HH z");
+        sdf.setTimeZone(new SimpleTimeZone(SimpleTimeZone.UTC_TIME, "UTC"));
+
+        //create a HashMap of date and ids (String) to compare dates and find the nearest date
+        dates = new HashMap<Date,String>();
+
+
+        //fix strict mode network exception
+        if (android.os.Build.VERSION.SDK_INT > 9) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
+
+        //get the current location
+        setUpLocationClientIfNeeded();
+        if (!mLocationClient.isConnected()) {
+            mLocationClient.connect();
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -118,24 +143,11 @@ public class MeteoclimaMainFragment extends Fragment implements
             rootView = inflater.inflate(R.layout.fragment_main, container, false);
         }
 
-        helper = new Helper(getActivity());
+        //first get the loading spinner
+        spinner = (LinearLayout) rootView.findViewById(R.id.spinner);
 
-        //fix strict mode network exception
-        if (android.os.Build.VERSION.SDK_INT > 9) {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-        }
-
-        //first get the current location
-        setUpLocationClientIfNeeded();
-        if (!mLocationClient.isConnected()) {
-            mLocationClient.connect();
-        }
         locationTextView = (TextView) rootView.findViewById(R.id.location);
         locationTextView.setText(helper.getLastKnownLocation());
-
-        //get the loading spinner
-        spinner = (LinearLayout) rootView.findViewById(R.id.spinner);
 
         return rootView;
     }
@@ -143,15 +155,31 @@ public class MeteoclimaMainFragment extends Fragment implements
     @Override
     public void onResume() {
         super.onResume();
-        setUpLocationClientIfNeeded();
-        if (!mLocationClient.isConnected()) {
-            mLocationClient.connect();
+        //if forecast is already downloaded use this one
+        if (helper.isGotForecasts()) {
+            updateUiFromStoredForecasts();
+        } else {
+            setUpLocationClientIfNeeded();
+            if (!mLocationClient.isConnected()) {
+                mLocationClient.connect();
+            }
         }
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        /*if (mLocationClient != null) {
+            mLocationClient.disconnect();
+        }*/
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        //delete retrieved forecasts to get the newest when the app run again
+        helper.storeForecasts(new JSONArray());
+        helper.setGotForecasts(false);
         if (mLocationClient != null) {
             mLocationClient.disconnect();
         }
@@ -168,7 +196,10 @@ public class MeteoclimaMainFragment extends Fragment implements
 
     @Override
     public void onLocationChanged(Location location) {
-        updateLocationOnUi();
+        setUpLocationClientIfNeeded();
+        if (!mLocationClient.isConnected()) {
+            mLocationClient.connect();
+        }
     }
 
     @Override
@@ -176,7 +207,11 @@ public class MeteoclimaMainFragment extends Fragment implements
         mLocationClient.requestLocationUpdates(
                 REQUEST,
                 this);  // LocationListener
-        updateLocationOnUi();
+        if (helper.isGotForecasts()) {
+            updateUiFromStoredForecasts();
+        } else {
+            updateLocationOnUi();
+        }
     }
 
     @Override
@@ -251,9 +286,135 @@ public class MeteoclimaMainFragment extends Fragment implements
 
     }
 
+    public void updateUiFromStoredForecasts() {
+
+        //first update the location name
+        String locationName = helper.getLocationName(mLastLocation);
+        if (locationName.equals("Waiting for location...")) {
+            updateLocationOnUi();
+        } else {
+            locationTextView.setText(locationName);
+            locationTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+        }
+
+        //and then update the forecast
+        retrievedLocations = helper.getRetrievedForecasts();
+
+        // looping through all locations
+        try {
+            for (int i = 0; i < retrievedLocations.length(); i++) {
+                JSONObject c = retrievedLocations.getJSONObject(i);
+
+                // Storing each json item in variable
+                String id = c.getString(TAG_ID);
+                String yy = c.getString(TAG_YEAR);
+                String mm = c.getString(TAG_MONTH);
+                String dd = c.getString(TAG_DAY);
+                String hh = c.getString(TAG_HOUR);
+                String lat = c.getString(TAG_LAT);
+                String lon = c.getString(TAG_LON);
+                String mslp = c.getString(TAG_MSLP);
+                String temp = c.getString(TAG_TEMP);
+                String rain = c.getString(TAG_RAIN);
+                String snow = c.getString(TAG_SNOW);
+                String windsp = c.getString(TAG_WINDSP);
+                String winddir = c.getString(TAG_WINDDIR);
+                String relhum = c.getString(TAG_RELHUM);
+                String lcloud = c.getString(TAG_LCOUD);
+                String mcloud = c.getString(TAG_MCLOUD);
+                String hcloud = c.getString(TAG_HCLOUD);
+                String weatherImage = c.getString(TAG_WEATHER_IMAGE);
+                String windWaveImage = c.getString(TAG_WIND_WAVE_IMAGE);
+                String landOrSea = c.getString(TAG_LAND_OR_SEA);
+
+                //parse date
+                Calendar cal = GregorianCalendar.getInstance(TimeZone.getTimeZone("UTC"));
+                String target = yy + " " + mm + " " + dd + " " + hh + " UTC";
+                Date result = null;
+                try {
+                    cal.setTime(sdf.parse(target));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+                //now add it to dates list to compare it when the loop is finished
+                Date dat = cal.getTime();
+                dates.put(dat, id);
+
+                // creating new HashMap
+                HashMap<String, String> map = new HashMap<String, String>();
+
+                // adding each child node to HashMap key => value
+                map.put(TAG_ID, id);
+                map.put(TAG_YEAR, yy);
+                map.put(TAG_MONTH, mm);
+                map.put(TAG_DAY, dd);
+                map.put(TAG_HOUR, hh);
+                map.put(TAG_LAT, lat);
+                map.put(TAG_LON, lon);
+                map.put(TAG_MSLP, mslp);
+                map.put(TAG_TEMP, temp);
+                map.put(TAG_RAIN, rain);
+                map.put(TAG_SNOW, snow);
+                map.put(TAG_WINDSP, windsp);
+                map.put(TAG_WINDDIR, winddir);
+                map.put(TAG_RELHUM, relhum);
+                map.put(TAG_LCOUD, lcloud);
+                map.put(TAG_MCLOUD, mcloud);
+                map.put(TAG_HCLOUD, hcloud);
+                map.put(TAG_WEATHER_IMAGE, weatherImage);
+                map.put(TAG_WIND_WAVE_IMAGE, windWaveImage);
+                map.put(TAG_LAND_OR_SEA, landOrSea);
+
+                // adding HashList to ArrayList
+                retrievedLocationsList.add(map);
+            }
+
+            //find the date closest to "now"
+            //long now = System.currentTimeMillis();
+
+
+            //TESTING ONLY NOW VALUE
+            Date d = null;
+            try {
+                d = sdf.parse("2015 02 02 10 UTC");
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            final long now = d.getTime();
+            //DON'T FORGET TO REMOVE
+
+
+            //convert the Hashmap to List to find the closest date
+            List<Date> datesToCompare = new ArrayList<Date>(dates.keySet());
+            Date closest = helper.getNearestDate(datesToCompare, d);
+
+            //loop retrievedLocationsList to send the closest location forecast to updateForecastInUi method
+            for (int i = 0; i < retrievedLocationsList.size(); i++) {
+                if (retrievedLocationsList.get(i).get(TAG_ID) == dates.get(closest)) {
+                    //store selected forecast's date to helper
+                    helper.setCurrentForecastDateTime(
+                            retrievedLocationsList.get(i).get(TAG_YEAR) + " " +
+                                    retrievedLocationsList.get(i).get(TAG_MONTH) + " " +
+                                    retrievedLocationsList.get(i).get(TAG_DAY) + " " +
+                                    retrievedLocationsList.get(i).get(TAG_HOUR)
+                    );
+                    updateForecastOnUi(retrievedLocationsList.get(i));
+                    spinner.setVisibility(View.GONE);
+                    ((MainActivity)getActivity()).showTabs();
+                }
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     private class ConnectToServer extends AsyncTask<String, Void, HashMap<String,String>> {
 
         protected HashMap<String,String> doInBackground(String... args) {
+
+            System.out.println("Meteoclima connecting to server...");
 
             //check for internet connection
             ConnectionChecker cc = new ConnectionChecker(getActivity());
@@ -269,21 +430,6 @@ public class MeteoclimaMainFragment extends Fragment implements
 
                 // getting JSON string from URL
                 JSONObject json = jParser.makeHttpRequest(url_server, "GET", params);
-
-                // Check your log cat for JSON reponse
-                //Log.d("Data retrieved from server: ", json.toString());
-
-                // Hashmap for retrieved locations
-                // (I am passing the right map from inside this one to onPostExecute and then to updateForecastOnUi).
-                retrievedLocationsList = new ArrayList<HashMap<String, String>>();
-
-                //build the SimpleDateFormat here to use it everywhere as it is
-                DateFormat sdf = new SimpleDateFormat("yyyy MM dd HH z");
-                sdf.setTimeZone(new SimpleTimeZone(SimpleTimeZone.UTC_TIME, "UTC"));
-
-                //create a list to compare dates and find the nearest
-                //List<Date> dates = new ArrayList<Date>();
-                Map<Date,String> dates = new HashMap<Date,String>();
 
                 try {
                     // Checking for SUCCESS TAG
@@ -383,14 +529,9 @@ public class MeteoclimaMainFragment extends Fragment implements
                         //DON'T FORGET TO REMOVE
 
 
-
-                        Date closest = Collections.min(dates.keySet(), new Comparator<Date>() {
-                            public int compare(Date d1, Date d2) {
-                                long diff1 = Math.abs(d1.getTime() - now);
-                                long diff2 = Math.abs(d2.getTime() - now);
-                                return Long.compare(diff1, diff2);
-                            }
-                        });
+                        //convert the Hashmap to List to find the closest date
+                        List<Date> datesToCompare = new ArrayList<Date>(dates.keySet());
+                        Date closest = helper.getNearestDate(datesToCompare, d);
 
                         //loop retrievedLocationsList to send the closest location forecast to updateForecastInUi method
                         for (int i = 0; i < retrievedLocationsList.size(); i++) {

@@ -1,6 +1,12 @@
 <resources>
     <string name="app_name">Meteoclima Android</string>
     <string name="action_settings">Settings</string>
-    <string name="chart_title">Temperature Graph (C)</string>
+    <string name="chart_title">Temperature Graph (℃)</string>
     <string name="title_activity_meteoclima_details">Forecast\'s Details</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="service_name">MeteoclimaWidgetService</string>
+    <string name="title_activity_meteoclima_settings">Settings</string>
+    <string name="widget_interval_setting_label">Widget update interval (mins): </string>
+    <string name="widget_interval_setting_value">30</string>
 </resources>

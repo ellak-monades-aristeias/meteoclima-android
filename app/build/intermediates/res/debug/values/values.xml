@@ -176,6 +176,11 @@
     <item name="dialog_fixed_width_minor" type="dimen">320dp</item>
     <item format="float" name="disabled_alpha_material_dark" type="dimen">0.30</item>
     <item format="float" name="disabled_alpha_material_light" type="dimen">0.26</item>
+    <!-- From: file:/home/spyros/Dropbox/Android/AndroidStudioProjects/MeteoclimaAndroid/app/src/main/res/values/dimens.xml -->
+    <eat-comment/>
+    <dimen name="widget_margin">8dp</dimen>
+    <!-- From: file:/home/spyros/Dropbox/Android/AndroidStudioProjects/MeteoclimaAndroid/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.1.1/res/values/values.xml -->
+    <eat-comment/>
     <item name="action_bar_activity_content" type="id"/>
     <item name="action_bar_spinner" type="id"/>
     <item name="action_menu_divider" type="id"/>
@@ -208,7 +213,9 @@
     <!-- From: file:/home/spyros/Dropbox/Android/AndroidStudioProjects/MeteoclimaAndroid/app/src/main/res/values/strings.xml -->
     <eat-comment/>
     <string name="action_settings">Settings</string>
+    <string name="add_widget">Add widget</string>
     <string name="app_name">Meteoclima Android</string>
+    <string name="appwidget_text">EXAMPLE</string>
     <!-- From: file:/home/spyros/Dropbox/Android/AndroidStudioProjects/MeteoclimaAndroid/app/build/intermediates/exploded-aar/com.google.android.gms/play-services/3.2.65/res/values/strings.xml -->
     <eat-comment/>
     <string name="auth_client_needs_enabling_title">
@@ -227,7 +234,7 @@
   </string>
     <!-- From: file:/home/spyros/Dropbox/Android/AndroidStudioProjects/MeteoclimaAndroid/app/src/main/res/values/strings.xml -->
     <eat-comment/>
-    <string name="chart_title">Temperature Graph (C)</string>
+    <string name="chart_title">Temperature Graph (℃)</string>
     <!-- From: file:/home/spyros/Dropbox/Android/AndroidStudioProjects/MeteoclimaAndroid/app/build/intermediates/exploded-aar/com.google.android.gms/play-services/3.2.65/res/values/strings.xml -->
     <eat-comment/>
     <string msgid="2523291102206661146" name="common_google_play_services_enable_button">Enable Google Play services</string>
@@ -251,7 +258,11 @@
     <string name="common_signin_button_text_long">Sign in with Google</string>
     <!-- From: file:/home/spyros/Dropbox/Android/AndroidStudioProjects/MeteoclimaAndroid/app/src/main/res/values/strings.xml -->
     <eat-comment/>
+    <string name="service_name">MeteoclimaWidgetService</string>
     <string name="title_activity_meteoclima_details">Forecast\'s Details</string>
+    <string name="title_activity_meteoclima_settings">Settings</string>
+    <string name="widget_interval_setting_label">Widget update interval (mins): </string>
+    <string name="widget_interval_setting_value">30</string>
     <!-- From: file:/home/spyros/Dropbox/Android/AndroidStudioProjects/MeteoclimaAndroid/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.1.1/res/values/values.xml -->
     <eat-comment/>
     <style name="AlertDialog.AppCompat" parent="Base.AlertDialog.AppCompat"/>
