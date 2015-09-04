@@ -3,6 +3,7 @@ package gr.qpc.meteoclimaandroid;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,8 +41,9 @@ public class MeteoclimaDailyFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        rootView = inflater.inflate(R.layout.fragment_daily, container,
-                false);
+        super.onCreateView(inflater, container, savedInstanceState);
+
+        rootView = inflater.inflate(R.layout.fragment_daily, container, false);
 
         spinnerDaily = (LinearLayout) rootView.findViewById(R.id.spinner_daily);
 
@@ -53,11 +55,18 @@ public class MeteoclimaDailyFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        getFragmentManager().executePendingTransactions();
+        if (isVisible()) {
+            populateList();
+        }
     }
 
     @Override
     public void onStart() {
         super.onStart();
+        if (isVisible()) {
+            populateList();
+        }
     }
 
     @Override
@@ -80,17 +89,17 @@ public class MeteoclimaDailyFragment extends Fragment {
                     JSONObject c = retrievedForecasts.getJSONObject(i);
 
                     if (c.has("error")) {
-                        System.out.println(c.getString("error"));
+                        Log.d(Helper.LOG_TAG, c.getString("error"));
                     }
 
                     // Storing each json item in variable
-                    String id = c.getString(MeteoclimaMainFragment.TAG_ID);
-                    String yy = c.getString(MeteoclimaMainFragment.TAG_YEAR);
-                    String mm = c.getString(MeteoclimaMainFragment.TAG_MONTH);
-                    String dd = c.getString(MeteoclimaMainFragment.TAG_DAY);
-                    String hh = c.getString(MeteoclimaMainFragment.TAG_HOUR);
-                    String temp = c.getString(MeteoclimaMainFragment.TAG_TEMP);
-                    String weatherImage = c.getString(MeteoclimaMainFragment.TAG_WEATHER_IMAGE);
+                    String id = c.getString(Helper.TAG_ID);
+                    String yy = c.getString(Helper.TAG_YEAR);
+                    String mm = c.getString(Helper.TAG_MONTH);
+                    String dd = c.getString(Helper.TAG_DAY);
+                    String hh = c.getString(Helper.TAG_HOUR);
+                    String temp = c.getString(Helper.TAG_TEMP);
+                    String weatherImage = c.getString(Helper.TAG_WEATHER_IMAGE);
 
                     //parse date and convert it from UTC to local time
                     String dateStr = yy + " " + mm + " " + dd + " " + hh;

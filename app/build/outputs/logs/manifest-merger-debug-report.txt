@@ -66,9 +66,9 @@ ADDED from AndroidManifest.xml:21:17
 	android:name
 		ADDED from AndroidManifest.xml:21:25
 category#android.intent.category.LAUNCHER
-ADDED from AndroidManifest.xml:23:17
+ADDED from AndroidManifest.xml:22:17
 	android:name
-		ADDED from AndroidManifest.xml:23:27
+		ADDED from AndroidManifest.xml:22:27
 activity#gr.qpc.meteoclimaandroid.MeteoclimaDetailsActivity
 ADDED from AndroidManifest.xml:26:9
 	android:label

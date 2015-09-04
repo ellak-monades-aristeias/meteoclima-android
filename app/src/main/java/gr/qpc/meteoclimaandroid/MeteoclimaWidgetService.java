@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.StrictMode;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -61,7 +63,13 @@ public class MeteoclimaWidgetService extends Service implements
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        System.out.println("MeteoclimaWidgetService is running!");
+        Log.d(Helper.LOG_TAG, "MeteoclimaWidgetService is running!");
+
+        //fix strict mode network exception
+        if (android.os.Build.VERSION.SDK_INT > 9) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
 
         ctx = this;
         widget_id = intent.getIntExtra("widget_id",0);
@@ -126,14 +134,11 @@ public class MeteoclimaWidgetService extends Service implements
             if (mLastLocation != null) {
                 locationName = helper.getLocationName(mLastLocation);
             } else {
-                System.out.println("MeteoclimeWidgetService: mLastLocation is null: " + mLastLocation);
+                Log.d(Helper.LOG_TAG,"MeteoclimeWidgetService: mLastLocation is null: " + mLastLocation);
             }
 
         }
-        //new ConnectToServer().doInBackground(String.valueOf(mLastLocation.getLatitude()),String.valueOf(mLastLocation.getLongitude()));
-        //test only!
-        //new ConnectToServer().doInBackground("38.66900000","12.20800000");
-        //check for internet connection
+
         ConnectionChecker cc = new ConnectionChecker(ctx);
 
         //Hashmap to pass to onPostExecute in case of errors.
@@ -149,7 +154,7 @@ public class MeteoclimaWidgetService extends Service implements
             JSONParser jParser = new JSONParser();
 
             // getting JSON string from URL
-            JSONObject json = jParser.makeHttpRequest(MeteoclimaMainFragment.url_server, "GET", params);
+            JSONObject json = jParser.makeHttpRequest(Helper.url_server, "GET", params);
 
             // Hashmap for retrieved locations
             // (I am passing the right map from inside this one to onPostExecute and then to updateForecastOnUi).
@@ -168,27 +173,27 @@ public class MeteoclimaWidgetService extends Service implements
 
             try {
                 // Checking for SUCCESS TAG
-                int success = json.getInt(MeteoclimaMainFragment.TAG_SUCCESS);
+                int success = json.getInt(Helper.TAG_SUCCESS);
 
                 if (success == 1) {
                     // locations found
                     // Getting Array of retrieved locations
-                    retrievedLocations = json.getJSONArray(MeteoclimaMainFragment.TAG_LOCATIONS);
+                    retrievedLocations = json.getJSONArray(Helper.TAG_LOCATIONS);
 
                     // looping through all locations
                     for (int i = 0; i < retrievedLocations.length(); i++) {
                         JSONObject c = retrievedLocations.getJSONObject(i);
 
                         // Storing each json item in variable
-                        String id = c.getString(MeteoclimaMainFragment.TAG_ID);
-                        String yy = c.getString(MeteoclimaMainFragment.TAG_YEAR);
-                        String mm = c.getString(MeteoclimaMainFragment.TAG_MONTH);
-                        String dd = c.getString(MeteoclimaMainFragment.TAG_DAY);
-                        String hh = c.getString(MeteoclimaMainFragment.TAG_HOUR);
-                        String lat = c.getString(MeteoclimaMainFragment.TAG_LAT);
-                        String lon = c.getString(MeteoclimaMainFragment.TAG_LON);
-                        String temp = c.getString(MeteoclimaMainFragment.TAG_TEMP);
-                        String weatherImage = c.getString(MeteoclimaMainFragment.TAG_WEATHER_IMAGE);
+                        String id = c.getString(Helper.TAG_ID);
+                        String yy = c.getString(Helper.TAG_YEAR);
+                        String mm = c.getString(Helper.TAG_MONTH);
+                        String dd = c.getString(Helper.TAG_DAY);
+                        String hh = c.getString(Helper.TAG_HOUR);
+                        String lat = c.getString(Helper.TAG_LAT);
+                        String lon = c.getString(Helper.TAG_LON);
+                        String temp = c.getString(Helper.TAG_TEMP);
+                        String weatherImage = c.getString(Helper.TAG_WEATHER_IMAGE);
 
                         //parse date
                         Calendar cal = GregorianCalendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -208,15 +213,15 @@ public class MeteoclimaWidgetService extends Service implements
                         HashMap<String, String> map = new HashMap<String, String>();
 
                         // adding each child node to HashMap key => value
-                        map.put(MeteoclimaMainFragment.TAG_ID,id);
-                        map.put(MeteoclimaMainFragment.TAG_YEAR,yy);
-                        map.put(MeteoclimaMainFragment.TAG_MONTH, mm);
-                        map.put(MeteoclimaMainFragment.TAG_DAY,dd);appWidgetManager.updateAppWidget(widget_id, views);
-                        map.put(MeteoclimaMainFragment.TAG_HOUR, hh);
-                        map.put(MeteoclimaMainFragment.TAG_LAT,lat);
-                        map.put(MeteoclimaMainFragment.TAG_LON,lon);
-                        map.put(MeteoclimaMainFragment.TAG_TEMP,temp);
-                        map.put(MeteoclimaMainFragment.TAG_WEATHER_IMAGE,weatherImage);
+                        map.put(Helper.TAG_ID,id);
+                        map.put(Helper.TAG_YEAR,yy);
+                        map.put(Helper.TAG_MONTH, mm);
+                        map.put(Helper.TAG_DAY,dd);appWidgetManager.updateAppWidget(widget_id, views);
+                        map.put(Helper.TAG_HOUR, hh);
+                        map.put(Helper.TAG_LAT,lat);
+                        map.put(Helper.TAG_LON,lon);
+                        map.put(Helper.TAG_TEMP,temp);
+                        map.put(Helper.TAG_WEATHER_IMAGE,weatherImage);
 
                         // adding HashList to ArrayList
                         retrievedLocationsList.add(map);
@@ -228,7 +233,7 @@ public class MeteoclimaWidgetService extends Service implements
                     //TESTING ONLY NOW VALUE
                     Date d = null;
                     try {
-                        d = sdf.parse("2015 02 02 10 UTC");
+                        d = sdf.parse("2015 09 01 10 UTC");
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
@@ -250,13 +255,13 @@ public class MeteoclimaWidgetService extends Service implements
 
                     //loop retrievedLocationsList to send the closest location forecast to updateForecastInUi method
                     for (int i = 0; i < retrievedLocationsList.size(); i++) {
-                        if (retrievedLocationsList.get(i).get(MeteoclimaMainFragment.TAG_ID) == dates.get(closest)) {
+                        if (retrievedLocationsList.get(i).get(Helper.TAG_ID) == dates.get(closest)) {
                             //store selected forecast's date to helper
                             helper.setCurrentForecastDateTime(
-                                    retrievedLocationsList.get(i).get(MeteoclimaMainFragment.TAG_YEAR) + " " +
-                                            retrievedLocationsList.get(i).get(MeteoclimaMainFragment.TAG_MONTH) + " " +
-                                            retrievedLocationsList.get(i).get(MeteoclimaMainFragment.TAG_DAY) + " " +
-                                            retrievedLocationsList.get(i).get(MeteoclimaMainFragment.TAG_HOUR)
+                                    retrievedLocationsList.get(i).get(Helper.TAG_YEAR) + " " +
+                                            retrievedLocationsList.get(i).get(Helper.TAG_MONTH) + " " +
+                                            retrievedLocationsList.get(i).get(Helper.TAG_DAY) + " " +
+                                            retrievedLocationsList.get(i).get(Helper.TAG_HOUR)
                             );
 
                             //update widget's views
@@ -265,23 +270,26 @@ public class MeteoclimaWidgetService extends Service implements
                             String date = df.format(Calendar.getInstance().getTime());
                             views.setTextViewText(R.id.widgetDateTime,date);
                             //add temperature to location name
-                            views.setTextViewText(R.id.appwidget_text, locationName + " " + helper.formatTemperature(retrievedLocationsList.get(i).get(MeteoclimaMainFragment.TAG_TEMP)));
-                            views.setImageViewResource(R.id.widgetImageView, helper.returnDrawableId(Integer.parseInt(retrievedLocationsList.get(i).get(MeteoclimaMainFragment.TAG_WEATHER_IMAGE))));
-                            views.setTextViewText(R.id.widgetBasicWeather, helper.returnBasicWeatherDescription(Integer.parseInt(retrievedLocationsList.get(i).get(MeteoclimaMainFragment.TAG_WEATHER_IMAGE))));
-                            appWidgetManager.updateAppWidget(widget_id, views);
+                            views.setTextViewText(R.id.appwidget_text, locationName + " " + helper.formatTemperature(retrievedLocationsList.get(i).get(Helper.TAG_TEMP)));
+                            views.setImageViewResource(R.id.widgetImageView, helper.returnDrawableId(Integer.parseInt(retrievedLocationsList.get(i).get(Helper.TAG_WEATHER_IMAGE))));
+                            views.setTextViewText(R.id.widgetBasicWeather, helper.returnBasicWeatherDescription(Integer.parseInt(retrievedLocationsList.get(i).get(Helper.TAG_WEATHER_IMAGE))));
                         }
                     }
 
                 } else {
                     // no retrieved locations found
-                    System.out.println("MeteoclimeWidgetService: Sorry! Forecast cannot be found.");
+                    views.setTextViewText(R.id.widgetDateTime, getString(R.string.forecast_not_available));
+                    Log.d(Helper.LOG_TAG, "MeteoclimeWidgetService: Sorry! Forecast not available.");
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("MeteoclimeWidgetService: Sorry! You are not connected to the Internet.");
+            views.setTextViewText(R.id.widgetDateTime, getString(R.string.no_internet_connection));
+            Log.d(Helper.LOG_TAG, "MeteoclimeWidgetService: Sorry! You are not connected to the Internet.");
         }
+    //update the widget's views either way
+    appWidgetManager.updateAppWidget(widget_id, views);
     //stop the service
     stopSelf();
     }

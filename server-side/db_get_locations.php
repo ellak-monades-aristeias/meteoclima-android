@@ -54,7 +54,7 @@ if (isset($_GET["lat"]) && isset($_GET["lat"])) {
 			$location["mcloud"] = $row["mcloud"];
 			$location["hcloud"] = $row["hcloud"];
 			$location["weatherImage"] = $row["weatherImage"];
-			$location["windWaveImage"] = $row["windWaveImage"];
+			$location["windBeaufort"] = $row["windBeaufort"];
 			$location["landOrSea"] = $row["landOrSea"];
 	 
 			// push single location into final response array

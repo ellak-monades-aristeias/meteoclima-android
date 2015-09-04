@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 /**
@@ -47,17 +48,24 @@ public class MeteoclimaAppWidget extends AppWidgetProvider {
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
+
+        Helper helper = new Helper(context);
+
         //start the MeteoclimaWidgetService to update widget's data
-        Intent i= new Intent(context, MeteoclimaWidgetService.class);
-        i.putExtra("widget_id", appWidgetId);
-        context.startService(i);
+        if (!helper.isBlockWidgetService()) {
+            Intent i= new Intent(context, MeteoclimaWidgetService.class);
+            i.putExtra("widget_id", appWidgetId);
+            context.startService(i);
+        } else {
+            Log.d(helper.LOG_TAG,"MeteoclimaAppWidget: Widget update service is blocked because the main app is running.");
+        }
 
         //open the Meteoclima app on click
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);  // Identifies the particular widget...
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
-        PendingIntent pendIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendIntent = PendingIntent.getActivity(context, 0, intent, 0);
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.meteoclima_app_widget);
         views.setOnClickPendingIntent(R.id.widgetBaseLayout, pendIntent);
         appWidgetManager.updateAppWidget(appWidgetId, views);

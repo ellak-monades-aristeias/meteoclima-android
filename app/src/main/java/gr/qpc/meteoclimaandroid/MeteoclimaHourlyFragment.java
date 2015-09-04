@@ -56,6 +56,7 @@ public class MeteoclimaHourlyFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        super.onCreateView(inflater, container, savedInstanceState);
 
         rootView = inflater.inflate(R.layout.fragment_hourly, container,
                 false);
@@ -81,11 +82,17 @@ public class MeteoclimaHourlyFragment extends Fragment {
         } else {
             mChart.repaint();
         }
+        if (isVisible()) {
+            populateList();
+        }
     }
 
     @Override
     public void onStart() {
         super.onStart();
+        if (isVisible()) {
+            populateList();
+        }
     }
 
     @Override
@@ -142,13 +149,13 @@ public class MeteoclimaHourlyFragment extends Fragment {
                     }
 
                     // Storing each json item in variable
-                    String id = c.getString(MeteoclimaMainFragment.TAG_ID);
-                    String yy = c.getString(MeteoclimaMainFragment.TAG_YEAR);
-                    String mm = c.getString(MeteoclimaMainFragment.TAG_MONTH);
-                    String dd = c.getString(MeteoclimaMainFragment.TAG_DAY);
-                    String hh = c.getString(MeteoclimaMainFragment.TAG_HOUR);
-                    String temp = c.getString(MeteoclimaMainFragment.TAG_TEMP);
-                    String weatherImage = c.getString(MeteoclimaMainFragment.TAG_WEATHER_IMAGE);
+                    String id = c.getString(Helper.TAG_ID);
+                    String yy = c.getString(Helper.TAG_YEAR);
+                    String mm = c.getString(Helper.TAG_MONTH);
+                    String dd = c.getString(Helper.TAG_DAY);
+                    String hh = c.getString(Helper.TAG_HOUR);
+                    String temp = c.getString(Helper.TAG_TEMP);
+                    String weatherImage = c.getString(Helper.TAG_WEATHER_IMAGE);
 
                     //parse date and convert it from UTC to local time
                     String dateStr = yy + " " + mm + " " + dd + " " + hh;

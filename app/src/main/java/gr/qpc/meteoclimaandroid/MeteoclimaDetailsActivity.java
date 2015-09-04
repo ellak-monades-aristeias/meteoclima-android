@@ -66,49 +66,43 @@ public class MeteoclimaDetailsActivity extends AppCompatActivity {
                         System.out.println(c.getString("error"));
                     }
 
-                    if (c.getString(MeteoclimaMainFragment.TAG_ID).equals(selected_id)) {
+                    if (c.getString(Helper.TAG_ID).equals(selected_id)) {
 
                         // Storing each json item in variable
-                        String id = c.getString(MeteoclimaMainFragment.TAG_ID);
-                        String yy = c.getString(MeteoclimaMainFragment.TAG_YEAR);
-                        String mm = c.getString(MeteoclimaMainFragment.TAG_MONTH);
-                        String dd = c.getString(MeteoclimaMainFragment.TAG_DAY);
-                        String hh = c.getString(MeteoclimaMainFragment.TAG_HOUR);
-                        String lat = c.getString(MeteoclimaMainFragment.TAG_LAT);
-                        String lon = c.getString(MeteoclimaMainFragment.TAG_LON);
-                        String mslp = c.getString(MeteoclimaMainFragment.TAG_MSLP);
-                        String temp = c.getString(MeteoclimaMainFragment.TAG_TEMP);
-                        String rain = c.getString(MeteoclimaMainFragment.TAG_RAIN);
-                        String snow = c.getString(MeteoclimaMainFragment.TAG_SNOW);
-                        String windsp = c.getString(MeteoclimaMainFragment.TAG_WINDSP);
-                        String winddir = c.getString(MeteoclimaMainFragment.TAG_WINDDIR);
-                        String relhum = c.getString(MeteoclimaMainFragment.TAG_RELHUM);
-                        String lcloud = c.getString(MeteoclimaMainFragment.TAG_LCOUD);
-                        String mcloud = c.getString(MeteoclimaMainFragment.TAG_MCLOUD);
-                        String hcloud = c.getString(MeteoclimaMainFragment.TAG_HCLOUD);
-                        String weatherImage = c.getString(MeteoclimaMainFragment.TAG_WEATHER_IMAGE);
-                        String windWaveImage = c.getString(MeteoclimaMainFragment.TAG_WIND_WAVE_IMAGE);
+                        String id = c.getString(Helper.TAG_ID);
+                        String yy = c.getString(Helper.TAG_YEAR);
+                        String mm = c.getString(Helper.TAG_MONTH);
+                        String dd = c.getString(Helper.TAG_DAY);
+                        String hh = c.getString(Helper.TAG_HOUR);
+                        String lat = c.getString(Helper.TAG_LAT);
+                        String lon = c.getString(Helper.TAG_LON);
+                        String mslp = c.getString(Helper.TAG_MSLP);
+                        String temp = c.getString(Helper.TAG_TEMP);
+                        String rain = c.getString(Helper.TAG_RAIN);
+                        String snow = c.getString(Helper.TAG_SNOW);
+                        String windsp = c.getString(Helper.TAG_WINDSP);
+                        String winddir = c.getString(Helper.TAG_WINDDIR);
+                        String relhum = c.getString(Helper.TAG_RELHUM);
+                        String weatherImage = c.getString(Helper.TAG_WEATHER_IMAGE);
+                        String windBeaufort = c.getString(Helper.TAG_WIND_BEAUFORT);
 
                         // adding each child node to HashMap key => value
-                        map.put(MeteoclimaMainFragment.TAG_ID, id);
-                        map.put(MeteoclimaMainFragment.TAG_YEAR, yy);
-                        map.put(MeteoclimaMainFragment.TAG_MONTH, mm);
-                        map.put(MeteoclimaMainFragment.TAG_DAY, dd);
-                        map.put(MeteoclimaMainFragment.TAG_HOUR, hh);
-                        map.put(MeteoclimaMainFragment.TAG_LAT, lat);
-                        map.put(MeteoclimaMainFragment.TAG_LON, lon);
-                        map.put(MeteoclimaMainFragment.TAG_MSLP, mslp);
-                        map.put(MeteoclimaMainFragment.TAG_TEMP, temp);
-                        map.put(MeteoclimaMainFragment.TAG_RAIN, rain);
-                        map.put(MeteoclimaMainFragment.TAG_SNOW, snow);
-                        map.put(MeteoclimaMainFragment.TAG_WINDSP, windsp);
-                        map.put(MeteoclimaMainFragment.TAG_WINDDIR, winddir);
-                        map.put(MeteoclimaMainFragment.TAG_RELHUM, relhum);
-                        map.put(MeteoclimaMainFragment.TAG_LCOUD, lcloud);
-                        map.put(MeteoclimaMainFragment.TAG_MCLOUD, mcloud);
-                        map.put(MeteoclimaMainFragment.TAG_HCLOUD, hcloud);
-                        map.put(MeteoclimaMainFragment.TAG_WEATHER_IMAGE, weatherImage);
-                        map.put(MeteoclimaMainFragment.TAG_WIND_WAVE_IMAGE, windWaveImage);
+                        map.put(Helper.TAG_ID, id);
+                        map.put(Helper.TAG_YEAR, yy);
+                        map.put(Helper.TAG_MONTH, mm);
+                        map.put(Helper.TAG_DAY, dd);
+                        map.put(Helper.TAG_HOUR, hh);
+                        map.put(Helper.TAG_LAT, lat);
+                        map.put(Helper.TAG_LON, lon);
+                        map.put(Helper.TAG_MSLP, mslp);
+                        map.put(Helper.TAG_TEMP, temp);
+                        map.put(Helper.TAG_RAIN, rain);
+                        map.put(Helper.TAG_SNOW, snow);
+                        map.put(Helper.TAG_WINDSP, windsp);
+                        map.put(Helper.TAG_WINDDIR, winddir);
+                        map.put(Helper.TAG_RELHUM, relhum);
+                        map.put(Helper.TAG_WEATHER_IMAGE, weatherImage);
+                        map.put(Helper.TAG_WIND_BEAUFORT, windBeaufort);
 
                         //parse date and convert it from UTC to local time
                         String dateStr = yy + " " + mm + " " + dd + " " + hh;
@@ -143,14 +137,14 @@ public class MeteoclimaDetailsActivity extends AppCompatActivity {
 
         imageView = (ImageView) findViewById(R.id.imageViewDetails);
         Resources res = getResources();
-        Drawable drawable = res.getDrawable(helper.returnDrawableId(Integer.parseInt(map.get(MeteoclimaMainFragment.TAG_WEATHER_IMAGE))));
+        Drawable drawable = res.getDrawable(helper.returnDrawableId(Integer.parseInt(map.get(Helper.TAG_WEATHER_IMAGE))));
         imageView.setImageDrawable(drawable);
         TextView basicWeatherDescriptionTextView = (TextView) findViewById(R.id.basicWeatherDetails);
-        basicWeatherDescriptionTextView.setText(helper.returnBasicWeatherDescription(Integer.parseInt(map.get(MeteoclimaMainFragment.TAG_WEATHER_IMAGE))));
+        basicWeatherDescriptionTextView.setText(helper.returnBasicWeatherDescription(Integer.parseInt(map.get(Helper.TAG_WEATHER_IMAGE))));
         basicWeatherDescriptionTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
 
         String[] forecastDescriptions = helper.getForecastDescriptions();
-        String[] tagNames = new String[]{"mslp","temp","rain","snow","windsp","winddir","relhum","lcloud","mcloud","hcloud","landOrSea"};
+        String[] tagNames = helper.getTagNames();
         GridView gridView = (GridView) findViewById(R.id.gridviewDetails);
 
         // create the grid item mapping
@@ -159,7 +153,7 @@ public class MeteoclimaDetailsActivity extends AppCompatActivity {
 
         // prepare the list of all records
         List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-        for(int i = 0; i < 10; i++){
+        for(int i = 0; i < forecastDescriptions.length; i++){
             HashMap<String, String> mapToFill = new HashMap<String, String>();
             mapToFill.put("forecast_name", forecastDescriptions[i]);
             mapToFill.put("value", map.get(tagNames[i]));

@@ -1,5 +1,6 @@
 package gr.qpc.meteoclimaandroid;
 
+import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -8,6 +9,7 @@ import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.util.Log;
 
 import org.json.JSONArray;
 
@@ -27,11 +29,42 @@ public class Helper {
     private SharedPreferences.Editor editor;
     private static JSONArray retrievedForecasts;
     private static boolean gotForecasts = false;
+    private static boolean blockWidgetService = false;
     private static String currentForecastDateTime;
 
     private static final String PREF_NAME = "MeteoclimaPreferences";
     private static final String LAST_KNOWN_LOCATION = "LAST_KNOWN_LOCATION";
     private static final String WIDGET_UPDATE_INTERVAL_MINS_PREF = "WIDGET_UPDATE_INTERVAL_MINS_PREF";
+
+    //Application Tag for Logger
+    public static final String LOG_TAG = "Meteoclima";
+
+    // url to get the location list
+    public static String url_server = "http://83.212.85.153/~spyros/meteoclima/db_get_locations.php";
+
+    // JSON Node names
+    public static final String TAG_SUCCESS = "success";
+    public static final String TAG_LOCATIONS = "locations";
+    public static final String TAG_ID = "id";
+    public static final String TAG_YEAR = "yy";
+    public static final String TAG_MONTH = "mm";
+    public static final String TAG_DAY = "dd";
+    public static final String TAG_HOUR = "hh";
+    public static final String TAG_LAT = "lat";
+    public static final String TAG_LON = "lon";
+    public static final String TAG_MSLP = "mslp";
+    public static final String TAG_TEMP = "temp";
+    public static final String TAG_RAIN = "rain";
+    public static final String TAG_SNOW = "snow";
+    public static final String TAG_WINDSP = "windsp";
+    public static final String TAG_WINDDIR = "winddir";
+    public static final String TAG_RELHUM = "relhum";
+    public static final String TAG_LCOUD = "lcloud";
+    public static final String TAG_MCLOUD = "mcloud";
+    public static final String TAG_HCLOUD = "hcloud";
+    public static final String TAG_WEATHER_IMAGE = "weatherImage";
+    public static final String TAG_WIND_BEAUFORT = "windBeaufort";
+    public static final String TAG_LAND_OR_SEA = "landOrSea";
 
     public Helper(Context context){
         ctx = context;
@@ -49,7 +82,7 @@ public class Helper {
     }
 
     public String getLocationName(Location location) {
-        String locality = "Waiting for location...";
+        String locality = ctx.getString(R.string.waiting_for_location);
         if (location != null) {
             try {
                 Geocoder geo = new Geocoder(ctx, Locale.getDefault());
@@ -74,6 +107,7 @@ public class Helper {
     public static void storeForecasts(JSONArray retrievedLocations) {
         Helper.retrievedForecasts = retrievedLocations;
         Helper.gotForecasts = true;
+        Log.d(LOG_TAG,"Forecasts are stored to Helper.");
     }
 
     public static JSONArray getRetrievedForecasts() {
@@ -91,6 +125,14 @@ public class Helper {
 
     public static void setGotForecasts(boolean gotForecasts) {
         Helper.gotForecasts = gotForecasts;
+    }
+
+    public static boolean isBlockWidgetService() {
+        return blockWidgetService;
+    }
+
+    public static void setBlockWidgetService(boolean blockWidgetService) {
+        Helper.blockWidgetService = blockWidgetService;
     }
 
     public static String getCurrentForecastDateTime() {
@@ -168,7 +210,11 @@ public class Helper {
     }
 
     public String[] getForecastDescriptions() {
-        return new String[]{"Pressure (hPa)","Temperature (℃)","Rain (mm)","Snow (mm)","Wind speed (m/s)","Wind direction (degrees)","Humidity (%)","Low clouds","Medium clouds","High clouds","landOrSea"};
+        return new String[]{"Pressure (hPa)","Temperature (℃)","Rain (mm)","Snow (mm)","Wind speed (m/s)","Wind direction (degrees)","Humidity (%)","landOrSea"};
+    }
+
+    public String[] getTagNames() {
+        return new String[]{"mslp","temp","rain","snow","windsp","winddir","relhum","landOrSea"};
     }
 
     public String formatTemperature(String temp) {
@@ -189,6 +235,8 @@ public class Helper {
         return minDate;
     }
 
+
+    //settings and widget stuff
     public void setWidgetUpdateIntervalPref(int intervalInMinutes) {
         editor.putInt(WIDGET_UPDATE_INTERVAL_MINS_PREF, intervalInMinutes * 60 * 1000);
         editor.commit();
@@ -218,6 +266,16 @@ public class Helper {
     public void clearWidgetUpdate(Context context) {
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         am.cancel(getAlarmIntentForWidgetUpdate(context));
+    }
+
+    public boolean isWidgetServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) ctx.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

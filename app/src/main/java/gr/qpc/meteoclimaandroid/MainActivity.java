@@ -7,6 +7,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -16,16 +17,16 @@ import gr.qpc.meteoclimaandroid.adapters.TabsPagerAdapter;
  * Created by spyros on 8/18/15.
  */
 
-@SuppressWarnings("ALL")
 public class MainActivity extends ActionBarActivity implements
         ActionBar.TabListener {
 
     private MyViewPager viewPager;
     private TabsPagerAdapter mAdapter;
     private ActionBar actionBar;
+    private Helper helper;
 
     // Tab titles
-    private String[] tabs = { "Now", "Hourly", "Daily" };
+    private String[] tabs = { "Now", "24 Hours", "Next Days" };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +34,16 @@ public class MainActivity extends ActionBarActivity implements
         setContentView(R.layout.activity_main);
 
         // Initilization
+        // block widget service from running simultaneously with the main app
+        helper = new Helper(this);
+        helper.setBlockWidgetService(true);
+
+        //stop widget service if it is running
+        if (helper.isWidgetServiceRunning(MeteoclimaWidgetService.class)) {
+            stopService(new Intent(this,MeteoclimaWidgetService.class));
+        }
+
+
         viewPager = (MyViewPager) findViewById(R.id.pager);
         actionBar = getSupportActionBar();
         mAdapter = new TabsPagerAdapter(getSupportFragmentManager());
@@ -50,10 +61,12 @@ public class MainActivity extends ActionBarActivity implements
         }
 
         //set the selectedTabIndex in case of screen orientation change
-        if(savedInstanceState != null) {
+        if(savedInstanceState != null ) {
             showTabs();
-            int selectedTabIndex = savedInstanceState.getInt("selectedTabIndex");
-            actionBar.setSelectedNavigationItem(selectedTabIndex);
+            Log.d(Helper.LOG_TAG, "savedInstanceStatesavedInstance tab int: " + String.valueOf(savedInstanceState.getInt("selectedTabIndex")));
+            if (0 < savedInstanceState.getInt("selectedTabIndex") && savedInstanceState.getInt("selectedTabIndex") < 3) {
+                actionBar.setSelectedNavigationItem(savedInstanceState.getInt("selectedTabIndex"));
+            }
         }
 
         /**
@@ -126,5 +139,35 @@ public class MainActivity extends ActionBarActivity implements
     public void showTabs() {
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         viewPager.setPagingEnabled(true);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        helper.setBlockWidgetService(true);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        helper.setBlockWidgetService(false);
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        helper.setBlockWidgetService(true);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        helper.setBlockWidgetService(false);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        helper.setBlockWidgetService(false);
     }
 }
