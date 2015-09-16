@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -82,9 +83,12 @@ public class MeteoclimaDetailsActivity extends AppCompatActivity {
                         String snow = c.getString(Helper.TAG_SNOW);
                         String windsp = c.getString(Helper.TAG_WINDSP);
                         String winddir = c.getString(Helper.TAG_WINDDIR);
+                        String windDirSym = c.getString(Helper.TAG_WINDDIR_SYM);
                         String relhum = c.getString(Helper.TAG_RELHUM);
                         String weatherImage = c.getString(Helper.TAG_WEATHER_IMAGE);
                         String windBeaufort = c.getString(Helper.TAG_WIND_BEAUFORT);
+                        String distance = c.getString(Helper.TAG_DISTANCE);
+                        String heatIndex = c.getString(Helper.TAG_HEAT_INDEX);
 
                         // adding each child node to HashMap key => value
                         map.put(Helper.TAG_ID, id);
@@ -100,22 +104,21 @@ public class MeteoclimaDetailsActivity extends AppCompatActivity {
                         map.put(Helper.TAG_SNOW, snow);
                         map.put(Helper.TAG_WINDSP, windsp);
                         map.put(Helper.TAG_WINDDIR, winddir);
+                        map.put(Helper.TAG_WINDDIR_SYM, windDirSym);
                         map.put(Helper.TAG_RELHUM, relhum);
                         map.put(Helper.TAG_WEATHER_IMAGE, weatherImage);
                         map.put(Helper.TAG_WIND_BEAUFORT, windBeaufort);
+                        map.put(Helper.TAG_DISTANCE, distance);
+                        map.put(Helper.TAG_HEAT_INDEX, heatIndex);
 
                         //parse date and convert it from UTC to local time
                         String dateStr = yy + " " + mm + " " + dd + " " + hh;
                         SimpleDateFormat readFormat = new SimpleDateFormat("yyyy MM dd HH");
                         readFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
                         Date date = readFormat.parse(dateStr);
-                        String printFormatTemplate = "";
-                        if (fragment.equals("daily")) {
-                            printFormatTemplate = "EEE, dd MMM yyyy HH:mm";
-                        } else if (fragment.equals("hourly")) {
-                            printFormatTemplate = "HH:mm";
-                        }
-                        SimpleDateFormat printFormat = new SimpleDateFormat(printFormatTemplate, Locale.ENGLISH);
+
+                        SimpleDateFormat printFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.ENGLISH);
+                        printFormat.setTimeZone(TimeZone.getDefault());
                         String formattedDate = printFormat.format(date);
 
                         dateTime = (TextView) findViewById(R.id.dateTimeDetails);
@@ -139,6 +142,12 @@ public class MeteoclimaDetailsActivity extends AppCompatActivity {
         Resources res = getResources();
         Drawable drawable = res.getDrawable(helper.returnDrawableId(Integer.parseInt(map.get(Helper.TAG_WEATHER_IMAGE))));
         imageView.setImageDrawable(drawable);
+
+        //update temperature
+        TextView temperatureTextView = (TextView) findViewById(R.id.temperatureDetails);
+        temperatureTextView.setText(helper.formatTemperature(map.get(Helper.TAG_TEMP)));
+        temperatureTextView.setGravity(Gravity.CENTER_VERTICAL);
+
         TextView basicWeatherDescriptionTextView = (TextView) findViewById(R.id.basicWeatherDetails);
         basicWeatherDescriptionTextView.setText(helper.returnBasicWeatherDescription(Integer.parseInt(map.get(Helper.TAG_WEATHER_IMAGE))));
         basicWeatherDescriptionTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
@@ -153,6 +162,13 @@ public class MeteoclimaDetailsActivity extends AppCompatActivity {
 
         // prepare the list of all records
         List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+
+        //first add the wind separately
+        HashMap<String, String> windToFill = new HashMap<String, String>();
+        windToFill.put("forecast_name", "Wind speed/direction");
+        windToFill.put("value", map.get(Helper.TAG_WIND_BEAUFORT) + " Bf / " + map.get(Helper.TAG_WINDDIR_SYM));
+        fillMaps.add(windToFill);
+
         for(int i = 0; i < forecastDescriptions.length; i++){
             HashMap<String, String> mapToFill = new HashMap<String, String>();
             mapToFill.put("forecast_name", forecastDescriptions[i]);

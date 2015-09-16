@@ -105,9 +105,9 @@ public class MeteoclimaWidgetService extends Service implements
 
     @Override
     public void onConnected(Bundle bundle) {
-        mLocationClient.requestLocationUpdates(
+        /*mLocationClient.requestLocationUpdates(
                 REQUEST,
-                this);  // LocationListener
+                this);  // LocationListener*/
         updateWidget();
     }
 
@@ -228,30 +228,11 @@ public class MeteoclimaWidgetService extends Service implements
                     }
 
                     //find the date closest to "now"
-                    //long now = System.currentTimeMillis();
-
-                    //TESTING ONLY NOW VALUE
-                    Date d = null;
-                    try {
-                        d = sdf.parse("2015 09 01 10 UTC");
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                    final long now = d.getTime();
-                    //DON'T FORGET TO REMOVE
-
-                    /*Date closest = Collections.min(dates.keySet(), new Comparator<Date>() {
-                        public int compare(Date d1, Date d2) {
-                            long diff1 = Math.abs(d1.getTime() - now);
-                            long diff2 = Math.abs(d2.getTime() - now);
-                            //return Long.compare(diff1, diff2);
-                            return Long.compare(diff1, diff2);
-                        }
-                    });*/
+                    Date now = new Date();
 
                     //convert the Hashmap to List to find the closest date
                     List<Date> datesToCompare = new ArrayList<Date>(dates.keySet());
-                    Date closest = helper.getNearestDate(datesToCompare, d);
+                    Date closest = helper.getNearestDate(datesToCompare, now);
 
                     //loop retrievedLocationsList to send the closest location forecast to updateForecastInUi method
                     for (int i = 0; i < retrievedLocationsList.size(); i++) {

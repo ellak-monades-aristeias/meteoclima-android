@@ -1,6 +1,7 @@
 package gr.qpc.meteoclimaandroid.adapters;
 
 import android.content.Context;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,15 +39,25 @@ public class MyArrayAdapter extends ArrayAdapter {
         TextView firstLine = (TextView) rowView.findViewById(R.id.firstLine);
         TextView secondLine = (TextView) rowView.findViewById(R.id.secondLine);
         TextView thirdLine = (TextView) rowView.findViewById(R.id.thirdLine);
+        TextView forthLine = (TextView) rowView.findViewById(R.id.forthLine);
         ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);
         HashMap<String,String> item = values.get(position);
 
-        ids_list.put(position,item.get("0"));
+        if (item.get("id") != null) {
+            ids_list.put(position, item.get("id"));
 
-        firstLine.setText(item.get("1"));
-        secondLine.setText(helper.returnBasicWeatherDescription(Integer.parseInt(item.get("3"))));
-        thirdLine.setText("Temperature: " + item.get("2"));
-        imageView.setImageResource(helper.returnDrawableId(Integer.parseInt(item.get("3"))));
+            imageView.setImageResource(helper.returnDrawableId(Integer.parseInt(item.get(Helper.TAG_WEATHER_IMAGE))));
+            firstLine.setText(item.get("formattedDate"));
+            secondLine.setText(helper.formatTemperature(item.get(Helper.TAG_TEMP)) + " " + helper.returnBasicWeatherDescription(Integer.parseInt(item.get(Helper.TAG_WEATHER_IMAGE))));
+            thirdLine.setText(Html.fromHtml("<b>Wind:</b> " + item.get(Helper.TAG_WIND_BEAUFORT) + " B / " + item.get(Helper.TAG_WINDDIR_SYM) + " <b>Pressure:</b> " + item.get(Helper.TAG_MSLP) + " hPa"));
+            if (!item.get(Helper.TAG_RAIN).equals("0.0")) {
+                forthLine.setText(Html.fromHtml("<b>Rain:</b> " + item.get(Helper.TAG_RAIN) + " <b>Humidity:</b> " + item.get(Helper.TAG_RELHUM)));
+            } else if (!item.get(Helper.TAG_SNOW).equals("0.0")) {
+                forthLine.setText(Html.fromHtml("<b>Snow:</b> " + item.get(Helper.TAG_RAIN) + " <b>Humidity:</b> " + item.get(Helper.TAG_RELHUM)));
+            } else {
+                forthLine.setText(Html.fromHtml("<b>Humidity:</b> " + item.get(Helper.TAG_RELHUM) + " <b>Heat Index (Feel):</b> " + item.get(Helper.TAG_HEAT_INDEX)));
+            }
+        }
 
         return rowView;
     }

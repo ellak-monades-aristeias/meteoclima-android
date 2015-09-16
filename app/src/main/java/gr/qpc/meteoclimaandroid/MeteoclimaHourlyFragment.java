@@ -1,23 +1,17 @@
 package gr.qpc.meteoclimaandroid;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
-import org.achartengine.ChartFactory;
-import org.achartengine.GraphicalView;
-import org.achartengine.chart.PointStyle;
-import org.achartengine.model.XYMultipleSeriesDataset;
-import org.achartengine.model.XYSeries;
-import org.achartengine.renderer.XYMultipleSeriesRenderer;
-import org.achartengine.renderer.XYSeriesRenderer;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,15 +34,12 @@ public class MeteoclimaHourlyFragment extends Fragment {
 
     private View rootView;
     private LinearLayout spinnerHourly;
+    private Button chartButton;
     private Helper helper;
     private JSONArray retrievedForecasts;
     private ArrayList<HashMap<String, String>> list;
-
-    private GraphicalView mChart;
-    private XYMultipleSeriesDataset mDataset = new XYMultipleSeriesDataset();
-    private XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();
-    private XYSeries mCurrentSeries;
-    private XYSeriesRenderer mCurrentRenderer;
+    private ArrayList<String> chartHourPoints;
+    private ArrayList<String> chartTempPoints;
     private int chartPointsCounter;
     private Boolean chartCompleted;
 
@@ -65,8 +56,21 @@ public class MeteoclimaHourlyFragment extends Fragment {
 
         helper = new Helper(getActivity());
 
+        chartHourPoints = new ArrayList<String>();
+        chartTempPoints = new ArrayList<String>();
         chartPointsCounter = 0;
         chartCompleted = false;
+
+        chartButton = (Button) rootView.findViewById(R.id.chart_button_hourly);
+        chartButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(getActivity(), MeteoclimaChartActivity.class);
+                i.putStringArrayListExtra("hours", chartHourPoints);
+                i.putStringArrayListExtra("temp_points", chartTempPoints);
+                startActivity(i);
+            }
+        });
 
         return rootView;
     }
@@ -74,14 +78,6 @@ public class MeteoclimaHourlyFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        LinearLayout layout = (LinearLayout) rootView.findViewById(R.id.chart);
-        if (mChart == null) {
-            initChart();
-            mChart = ChartFactory.getCubeLineChartView(getActivity(), mDataset, mRenderer, 0.3f);
-            layout.addView(mChart);
-        } else {
-            mChart.repaint();
-        }
         if (isVisible()) {
             populateList();
         }
@@ -103,32 +99,13 @@ public class MeteoclimaHourlyFragment extends Fragment {
         }
     }
 
-    private void initChart() {
-        mCurrentSeries = new XYSeries("Temperature");
-        mDataset.addSeries(mCurrentSeries);
-        mCurrentRenderer = new XYSeriesRenderer();
-        mCurrentRenderer.setPointStyle(PointStyle.CIRCLE);
-        mCurrentRenderer.setLineWidth(6);
-        mCurrentRenderer.setPointStrokeWidth(14);
-        mCurrentRenderer.setColor(Color.parseColor("#505050"));
-        mRenderer.addSeriesRenderer(mCurrentRenderer);
-        mRenderer.setZoomEnabled(false);
-        mRenderer.setMarginsColor(Color.WHITE);
-        mRenderer.setShowLegend(false);
-        mRenderer.setApplyBackgroundColor(true);
-        mRenderer.setAxesColor(Color.BLACK);
-        mRenderer.setXLabelsColor(Color.WHITE);
-        mRenderer.setYLabelsColor(0, Color.RED);
-        mRenderer.setYLabelsPadding(-100);
-        mRenderer.setLabelsTextSize(35);
-        mRenderer.setBackgroundColor(0x300000FF);
-    }
-
-    private void addDataToChart(double y) {
+    private void addDataToChart(String time, String temp) {
         if (!chartCompleted) {
-            mCurrentSeries.add(chartPointsCounter,y);
+            chartHourPoints.add(time);
+            chartTempPoints.add(temp);
+            /*mCurrentSeries.add(chartPointsCounter,y);
             mChart.repaint();
-            chartPointsCounter = chartPointsCounter+3;
+            chartPointsCounter = chartPointsCounter+3;*/
             //System.out.println("Added point " + chartPointsCounter + "," + y + " to chart");
         }
     }
@@ -139,7 +116,9 @@ public class MeteoclimaHourlyFragment extends Fragment {
 
             list = new ArrayList<HashMap<String, String>>();
 
-            // looping through all locations
+            int forecastCounter = 0; //counter to get forecasts for 24 hours (8 forecasts)
+
+            // looping through all forecasts
             try {
                 for (int i = 0; i < retrievedForecasts.length(); i++) {
                     JSONObject c = retrievedForecasts.getJSONObject(i);
@@ -150,12 +129,22 @@ public class MeteoclimaHourlyFragment extends Fragment {
 
                     // Storing each json item in variable
                     String id = c.getString(Helper.TAG_ID);
+                    String lat = c.getString(Helper.TAG_LAT);
+                    String lon = c.getString(Helper.TAG_LON);
                     String yy = c.getString(Helper.TAG_YEAR);
                     String mm = c.getString(Helper.TAG_MONTH);
                     String dd = c.getString(Helper.TAG_DAY);
                     String hh = c.getString(Helper.TAG_HOUR);
                     String temp = c.getString(Helper.TAG_TEMP);
                     String weatherImage = c.getString(Helper.TAG_WEATHER_IMAGE);
+                    String mslp = c.getString(Helper.TAG_MSLP);
+                    String rain = c.getString(Helper.TAG_RAIN);
+                    String snow = c.getString(Helper.TAG_SNOW);
+                    String windBeaufort = c.getString(Helper.TAG_WIND_BEAUFORT);
+                    String winddir = c.getString(Helper.TAG_WINDDIR);
+                    String windDirSym = c.getString(Helper.TAG_WINDDIR_SYM);
+                    String relhum = c.getString(Helper.TAG_RELHUM);
+                    String heatIndex = c.getString(Helper.TAG_HEAT_INDEX);
 
                     //parse date and convert it from UTC to local time
                     String dateStr = yy + " " + mm + " " + dd + " " + hh;
@@ -163,32 +152,58 @@ public class MeteoclimaHourlyFragment extends Fragment {
                     readFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
                     Date date = readFormat.parse(dateStr);
 
-                    SimpleDateFormat printFormat = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
+                    SimpleDateFormat printFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.ENGLISH);
                     printFormat.setTimeZone(TimeZone.getDefault());
                     String formattedDate = printFormat.format(date);
-                    //System.out.println("formattedDate: " + printFormat.format(date));
 
                     //parse the current forecasts date from helper to compare it
                     Date currentForecastDate = readFormat.parse(helper.getCurrentForecastDateTime());
 
                     Calendar cal1 = Calendar.getInstance();
                     Calendar cal2 = Calendar.getInstance();
-                    cal1.setTime(date);
-                    cal2.setTime(currentForecastDate);
+                    cal1.setTime(date); //forecast's in the loop cal
+                    cal2.setTime(currentForecastDate); //current forecast's cal
+
+                    boolean hourNext = cal1.getTimeInMillis() > cal2.getTimeInMillis();
+
                     boolean sameDay = cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
                             cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
 
-                    //keep only current day's forecasts
-                    if (sameDay) {
-                        //put everything in hashmaps and then in an ArrayList to populate the listView
-                        HashMap<String,String> map = new HashMap<String,String>();
-                        map.put("0", id);
-                        map.put("1", formattedDate);
-                        map.put("2", temp);
-                        map.put("3", weatherImage);
-                        list.add(map);
-                        //add point to chart
-                        addDataToChart(Double.parseDouble(temp));
+                    //calculate tomorrow's date
+                    Calendar cal3 = Calendar.getInstance();
+                    cal3.setTime(currentForecastDate);
+                    cal3.add(Calendar.DATE, 1);
+
+                    boolean nextDay = cal1.get(Calendar.DAY_OF_YEAR) == cal3.get(Calendar.DAY_OF_YEAR);
+
+                    boolean sameLocation = (lat.equals(Helper.getCurrentForecastLat())) &&
+                            (lon.equals(Helper.getCurrentForecastLon()));
+
+                    //keep only 8 forecasts (24 hours) starting from the current forecast
+                    if (forecastCounter < 8) {
+                        if ((sameDay && hourNext && sameLocation) || (nextDay && sameLocation)) {
+                            //put everything in hashmaps and then in an ArrayList to populate the listView
+                            HashMap<String, String> map = new HashMap<String, String>();
+                            map.put("id", id);
+                            map.put("formattedDate", formattedDate);
+                            map.put(Helper.TAG_TEMP, temp);
+                            map.put(Helper.TAG_WEATHER_IMAGE, weatherImage);
+                            map.put(Helper.TAG_MSLP, mslp);
+                            map.put(Helper.TAG_RAIN, rain);
+                            map.put(Helper.TAG_SNOW, snow);
+                            map.put(Helper.TAG_WIND_BEAUFORT, windBeaufort);
+                            map.put(Helper.TAG_WINDDIR, winddir);
+                            map.put(Helper.TAG_WINDDIR_SYM, windDirSym);
+                            map.put(Helper.TAG_RELHUM, relhum);
+                            map.put(Helper.TAG_HEAT_INDEX, heatIndex);
+                            list.add(map);
+                            //increment forecastCounter
+                            forecastCounter++;
+
+                            Log.d(Helper.LOG_TAG,"ADDED forecastCounter = " + forecastCounter);
+                            //add point to chart
+                            addDataToChart(hh,temp);
+                        }
                     }
                 }
             } catch (JSONException e) {
@@ -204,16 +219,17 @@ public class MeteoclimaHourlyFragment extends Fragment {
             }
             ListView listView = (ListView) rootView.findViewById(R.id.listview_hourly);
             listView.setAdapter(adapter);
+            Log.d(Helper.LOG_TAG, "list size: " + list.size());
 
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    Intent intent = new Intent(getActivity(), MeteoclimaDetailsActivity.class);
-                    intent.putExtra("id", adapter.getId(position));
-                    intent.putExtra("fragment", "hourly");
-                    startActivity(intent);
-                }
-            });
+                    listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            Intent intent = new Intent(getActivity(), MeteoclimaDetailsActivity.class);
+                            intent.putExtra("id", adapter.getId(position));
+                            intent.putExtra("fragment", "hourly");
+                            startActivity(intent);
+                        }
+                    });
         }
     }
 }

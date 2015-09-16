@@ -33,7 +33,7 @@ public class MySimpleAdapter extends SimpleAdapter {
             first.setTextColor(Color.WHITE);
             second.setTextColor(Color.WHITE);
         } else {
-            view.setBackgroundColor(0x300000FF);
+            view.setBackgroundColor(Color.parseColor("#B4CBFF"));
         }
 
 

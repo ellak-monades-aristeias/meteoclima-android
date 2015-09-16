@@ -8,8 +8,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.app.Fragment;
+import android.text.Html;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,6 +64,7 @@ public class MeteoclimaMainFragment extends Fragment implements
     private LinearLayout spinner;
     private Helper helper;
     private ArrayList<HashMap<String, String>> retrievedLocationsList;
+    private ArrayList<Float> distances;
     private HashMap<String,String> results;
     private DateFormat sdf;
     private Map<Date,String> dates;
@@ -123,6 +126,13 @@ public class MeteoclimaMainFragment extends Fragment implements
             rootView = inflater.inflate(R.layout.fragment_main, container, false);
         }
 
+
+        //put na image to imageView
+        imageView = (ImageView) rootView.findViewById(R.id.imageView);
+        Resources res = getResources();
+        Drawable drawable = res.getDrawable(R.drawable.na);
+        imageView.setImageDrawable(drawable);
+
         //first get the loading spinner
         spinner = (LinearLayout) rootView.findViewById(R.id.spinner);
 
@@ -136,7 +146,7 @@ public class MeteoclimaMainFragment extends Fragment implements
     public void onResume() {
         super.onResume();
         //if forecast is already downloaded use this one
-        if (helper.isGotForecasts()) {
+        if (Helper.isGotForecasts()) {
             updateUiFromStoredForecasts();
         } else {
             setUpLocationClientIfNeeded();
@@ -151,7 +161,7 @@ public class MeteoclimaMainFragment extends Fragment implements
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             //if forecast is already downloaded use this one
-            if (helper.isGotForecasts()) {
+            if (Helper.isGotForecasts()) {
                 updateUiFromStoredForecasts();
             } else {
                 setUpLocationClientIfNeeded();
@@ -175,7 +185,7 @@ public class MeteoclimaMainFragment extends Fragment implements
         super.onDestroy();
         //delete retrieved forecasts to get the newest when the app run again
         helper.storeForecasts(new JSONArray());
-        helper.setGotForecasts(false);
+        Helper.setGotForecasts(false);
         if (mLocationClient != null) {
             mLocationClient.disconnect();
         }
@@ -201,12 +211,12 @@ public class MeteoclimaMainFragment extends Fragment implements
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        mLocationClient.requestLocationUpdates(
+        /*mLocationClient.requestLocationUpdates(
                 REQUEST,
-                this);  // LocationListener
+                this);  // LocationListener*/
         getFragmentManager().executePendingTransactions(); //to make sure isAdded returns the correct value
         if (isAdded()) { //prevent running if the fragment is not still attached to the activity
-            if (helper.isGotForecasts()) {
+            if (Helper.isGotForecasts()) {
                 updateUiFromStoredForecasts();
             } else {
                 updateUi();
@@ -237,15 +247,23 @@ public class MeteoclimaMainFragment extends Fragment implements
 
     public void updateForecastOnUi(HashMap<String,String> map) {
         if (rootView != null) {
-            imageView = (ImageView) rootView.findViewById(R.id.imageView);
+
+            //update image
             Resources res = getResources();
             Drawable drawable = res.getDrawable(helper.returnDrawableId(Integer.parseInt(map.get(Helper.TAG_WEATHER_IMAGE))));
             imageView.setImageDrawable(drawable);
+
+            //update description
             TextView basicWeatherDescriptionTextView = (TextView) rootView.findViewById(R.id.basicWeather);
             basicWeatherDescriptionTextView.setText(helper.returnBasicWeatherDescription(Integer.parseInt(map.get(Helper.TAG_WEATHER_IMAGE))));
             basicWeatherDescriptionTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
 
-            //update time on ui
+            //update temperature
+            TextView temperatureTextView = (TextView) rootView.findViewById(R.id.temperature);
+            temperatureTextView.setText(helper.formatTemperature(map.get(Helper.TAG_TEMP)));
+            temperatureTextView.setGravity(Gravity.CENTER_VERTICAL);
+
+            //update time
             DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
             String date = df.format(Calendar.getInstance().getTime());
             dateTime = (TextView) rootView.findViewById(R.id.dateTime);
@@ -261,6 +279,13 @@ public class MeteoclimaMainFragment extends Fragment implements
 
             // prepare the list of all records
             List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+
+            //first add the wind separately
+            HashMap<String, String> windToFill = new HashMap<String, String>();
+            windToFill.put("forecast_name", "Wind speed/direction");
+            windToFill.put("value", map.get(Helper.TAG_WIND_BEAUFORT) + " Bf / " + map.get(Helper.TAG_WINDDIR_SYM));
+            fillMaps.add(windToFill);
+
             for(int i = 0; i < forecastDescriptions.length; i++){
                 HashMap<String, String> mapToFill = new HashMap<String, String>();
                 mapToFill.put("forecast_name", forecastDescriptions[i]);
@@ -271,6 +296,11 @@ public class MeteoclimaMainFragment extends Fragment implements
             // fill in the grid_item layout
             MySimpleAdapter adapter = new MySimpleAdapter(getActivity(), fillMaps, R.layout.grid_item, from, to);
             gridView.setAdapter(adapter);
+
+            //show current lan/lon for beta testers
+            TextView debug = (TextView) rootView.findViewById(R.id.debug);
+            debug.setText(Html.fromHtml("device lat: " + mLastLocation.getLatitude() + " lon: " + mLastLocation.getLongitude() +
+                    "<br>server lat: " + map.get(Helper.TAG_LAT) + " lon: " + map.get(Helper.TAG_LON)));
         }
     }
 
@@ -284,7 +314,7 @@ public class MeteoclimaMainFragment extends Fragment implements
             updateUi();
         } else {
             locationTextView.setText(locationName);
-            locationTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+            /*locationTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);*/
         }
 
         //and then update the forecast
@@ -309,15 +339,18 @@ public class MeteoclimaMainFragment extends Fragment implements
                 String snow = c.getString(Helper.TAG_SNOW);
                 String windsp = c.getString(Helper.TAG_WINDSP);
                 String winddir = c.getString(Helper.TAG_WINDDIR);
+                String windDirSym = c.getString(Helper.TAG_WINDDIR_SYM);
                 String relhum = c.getString(Helper.TAG_RELHUM);
                 String weatherImage = c.getString(Helper.TAG_WEATHER_IMAGE);
                 String windBeaufort = c.getString(Helper.TAG_WIND_BEAUFORT);
                 String landOrSea = c.getString(Helper.TAG_LAND_OR_SEA);
+                String distance = c.getString(Helper.TAG_DISTANCE);
+                String heatIndex = c.getString(Helper.TAG_HEAT_INDEX);
 
                 //parse date
                 Calendar cal = GregorianCalendar.getInstance(TimeZone.getTimeZone("UTC"));
                 String target = yy + " " + mm + " " + dd + " " + hh + " UTC";
-                Date result = null;
+                //Date result = null;
                 try {
                     cal.setTime(sdf.parse(target));
                 } catch (ParseException e) {
@@ -345,33 +378,23 @@ public class MeteoclimaMainFragment extends Fragment implements
                 map.put(Helper.TAG_SNOW, snow);
                 map.put(Helper.TAG_WINDSP, windsp);
                 map.put(Helper.TAG_WINDDIR, winddir);
+                map.put(Helper.TAG_WINDDIR_SYM, windDirSym);
                 map.put(Helper.TAG_RELHUM, relhum);
                 map.put(Helper.TAG_WEATHER_IMAGE, weatherImage);
                 map.put(Helper.TAG_WIND_BEAUFORT, windBeaufort);
                 map.put(Helper.TAG_LAND_OR_SEA, landOrSea);
+                map.put(Helper.TAG_DISTANCE, distance);
+                map.put(Helper.TAG_HEAT_INDEX, heatIndex);
 
                 // adding HashList to ArrayList
                 retrievedLocationsList.add(map);
             }
 
             //find the date closest to "now"
-            //long now = System.currentTimeMillis();
-
-
-            //TESTING ONLY NOW VALUE
-            Date d = null;
-            try {
-                d = sdf.parse("2015 02 02 10 UTC");
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            final long now = d.getTime();
-            //DON'T FORGET TO REMOVE
-
-
+            Date now = new Date();
             //convert the Hashmap to List to find the closest date
             List<Date> datesToCompare = new ArrayList<Date>(dates.keySet());
-            Date closest = helper.getNearestDate(datesToCompare, d);
+            Date closest = helper.getNearestDate(datesToCompare, now);
 
             //loop retrievedLocationsList to send the closest location forecast to updateForecastInUi method
             for (int i = 0; i < retrievedLocationsList.size(); i++) {
@@ -379,9 +402,9 @@ public class MeteoclimaMainFragment extends Fragment implements
                     //store selected forecast's date to helper
                     helper.setCurrentForecastDateTime(
                             retrievedLocationsList.get(i).get(Helper.TAG_YEAR) + " " +
-                                    retrievedLocationsList.get(i).get(Helper.TAG_MONTH) + " " +
-                                    retrievedLocationsList.get(i).get(Helper.TAG_DAY) + " " +
-                                    retrievedLocationsList.get(i).get(Helper.TAG_HOUR)
+                            retrievedLocationsList.get(i).get(Helper.TAG_MONTH) + " " +
+                            retrievedLocationsList.get(i).get(Helper.TAG_DAY) + " " +
+                            retrievedLocationsList.get(i).get(Helper.TAG_HOUR)
                     );
                     updateForecastOnUi(retrievedLocationsList.get(i));
                     spinner.setVisibility(View.GONE);
@@ -424,7 +447,7 @@ public class MeteoclimaMainFragment extends Fragment implements
         @Override
         protected void onPostExecute(String locationName) {
             if (locationName.equals(getString(R.string.waiting_for_location))) {
-                locationTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+                /*locationTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);*/
                 getLocationNameIsRunning = false;
             }
         }
@@ -443,6 +466,9 @@ public class MeteoclimaMainFragment extends Fragment implements
             connectToServerIsRunning = true;
 
             Log.d(Helper.LOG_TAG, "Meteoclima connecting to server...");
+
+            //initialize distances ArrayList
+            distances = new ArrayList<Float>();
 
             //check for internet connection
             ConnectionChecker cc = new ConnectionChecker(ctx);
@@ -478,7 +504,7 @@ public class MeteoclimaMainFragment extends Fragment implements
 
                             //store retrievedLocations to helper class
                             helper.storeForecasts(retrievedLocations);
-                            helper.setGotForecasts(true);
+                            Helper.setGotForecasts(true);
 
                             // looping through all locations
                             for (int i = 0; i < retrievedLocations.length(); i++) {
@@ -498,15 +524,21 @@ public class MeteoclimaMainFragment extends Fragment implements
                                 String snow = c.getString(Helper.TAG_SNOW);
                                 String windsp = c.getString(Helper.TAG_WINDSP);
                                 String winddir = c.getString(Helper.TAG_WINDDIR);
+                                String windDirSym = c.getString(Helper.TAG_WINDDIR_SYM);
                                 String relhum = c.getString(Helper.TAG_RELHUM);
                                 String weatherImage = c.getString(Helper.TAG_WEATHER_IMAGE);
                                 String windBeaufort = c.getString(Helper.TAG_WIND_BEAUFORT);
                                 String landOrSea = c.getString(Helper.TAG_LAND_OR_SEA);
+                                String distance = c.getString(Helper.TAG_DISTANCE);
+                                String heatIndex = c.getString(Helper.TAG_HEAT_INDEX);
+
+                                //add distance in an ArrayList to find the smallest (nearest) later
+                                distances.add(Float.parseFloat(distance));
 
                                 //parse date
                                 Calendar cal = GregorianCalendar.getInstance(TimeZone.getTimeZone("UTC"));
                                 String target = yy + " " + mm + " " + dd + " " + hh + " UTC";
-                                Date result = null;
+                                //Date result = null;
                                 try {
                                     cal.setTime(sdf.parse(target));
                                 } catch (ParseException e) {
@@ -534,38 +566,32 @@ public class MeteoclimaMainFragment extends Fragment implements
                                 map.put(Helper.TAG_SNOW,snow);
                                 map.put(Helper.TAG_WINDSP,windsp);
                                 map.put(Helper.TAG_WINDDIR,winddir);
+                                map.put(Helper.TAG_WINDDIR_SYM,windDirSym);
                                 map.put(Helper.TAG_RELHUM,relhum);
                                 map.put(Helper.TAG_WEATHER_IMAGE,weatherImage);
                                 map.put(Helper.TAG_WIND_BEAUFORT,windBeaufort);
                                 map.put(Helper.TAG_LAND_OR_SEA, landOrSea);
+                                map.put(Helper.TAG_DISTANCE, distance);
+                                map.put(Helper.TAG_HEAT_INDEX, heatIndex);
 
                                 // adding HashList to ArrayList
                                 retrievedLocationsList.add(map);
                             }
 
-                            //find the date closest to "now"
-                            //long now = System.currentTimeMillis();
+                            //find the smallest (nearest) distance
+                            /*Float smallestDistance = Collections.min(distances);
+                            Log.d(Helper.LOG_TAG,"smallestDistance: " + smallestDistance);*/
 
-
-
-                            //TESTING ONLY NOW VALUE
-                            Date d = null;
-                            try {
-                                d = sdf.parse("2015 09 01 10 UTC");
-                            } catch (ParseException e) {
-                                e.printStackTrace();
-                            }
-                            final long now = d.getTime();
-                            //DON'T FORGET TO REMOVE
-
-
+                            //find the closest date
+                            Date now = new Date();
                             //convert the Hashmap to List to find the closest date
                             List<Date> datesToCompare = new ArrayList<Date>(dates.keySet());
-                            Date closest = helper.getNearestDate(datesToCompare, d);
+                            Date closest = helper.getNearestDate(datesToCompare, now);
 
                             //loop retrievedLocationsList to send the closest location forecast to updateForecastInUi method
                             for (int i = 0; i < retrievedLocationsList.size(); i++) {
-                                if (retrievedLocationsList.get(i).get(Helper.TAG_ID) == dates.get(closest)) {
+                                if (retrievedLocationsList.get(i).get(Helper.TAG_ID) == dates.get(closest) /*&&
+                                        Float.parseFloat(retrievedLocationsList.get(i).get(Helper.TAG_DISTANCE)) == smallestDistance*/) {
                                     //store selected forecast's date to helper
                                     helper.setCurrentForecastDateTime(
                                             retrievedLocationsList.get(i).get(Helper.TAG_YEAR) + " " +
@@ -573,6 +599,10 @@ public class MeteoclimaMainFragment extends Fragment implements
                                                     retrievedLocationsList.get(i).get(Helper.TAG_DAY) + " " +
                                                     retrievedLocationsList.get(i).get(Helper.TAG_HOUR)
                                     );
+
+                                    //store selected forecast's location to helper
+                                    Helper.setCurrentForecastLat(retrievedLocationsList.get(i).get(Helper.TAG_LAT));
+                                    Helper.setCurrentForecastLon(retrievedLocationsList.get(i).get(Helper.TAG_LON));
 
                                     return retrievedLocationsList.get(i);
                                 }
@@ -591,36 +621,40 @@ public class MeteoclimaMainFragment extends Fragment implements
                 results.put("error", getString(R.string.sorry_no_internet_connection));
                 return results;
             }
-            return null;
+            return results;
         }
 
         @Override
         protected void onPostExecute(HashMap<String,String> result) {
+            super.onPostExecute(result);
             Log.d(Helper.LOG_TAG,"ConnectToServer onPostExecute");
-            getFragmentManager().executePendingTransactions(); //to make sure isAdded returns the correct value
-            Log.d(Helper.LOG_TAG,"isAdded is: " + isAdded());
-            if (isAdded()) { //prevent onPostExecute to run if the fragment is not still attached to the activity
-                if (result.containsKey("error")) {
-                    Toast.makeText(getActivity(), result.get("error"), Toast.LENGTH_LONG).show();
-                    ProgressBar progressSpinner = (ProgressBar) rootView.findViewById(R.id.marker_progress);
-                    progressSpinner.setVisibility(View.GONE);
-                    TextView errorMsg = (TextView) rootView.findViewById(R.id.waitingMessage);
-                    errorMsg.setText(result.get("error"));
-                    Button retryBtn = (Button) rootView.findViewById(R.id.button_retry);
-                    retryBtn.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            updateUi();
-                        }
-                    });
-                    retryBtn.setVisibility(View.VISIBLE);
-                } else {
-                    updateForecastOnUi(result);
-                    spinner.setVisibility(View.GONE);
-                    ((MainActivity)getActivity()).showTabs();
+            if (getFragmentManager() != null) { //run only if app is active
+                getFragmentManager().executePendingTransactions(); //to make sure isAdded returns the correct value
+                Log.d(Helper.LOG_TAG,"isAdded is: " + isAdded());
+                if (isAdded()) { //prevent onPostExecute to run if the fragment is not still attached to the activity
+                    if (result.containsKey("error")) {
+                        Toast.makeText(getActivity(), result.get("error"), Toast.LENGTH_LONG).show();
+                        ProgressBar progressSpinner = (ProgressBar) rootView.findViewById(R.id.marker_progress);
+                        progressSpinner.setVisibility(View.GONE);
+                        TextView errorMsg = (TextView) rootView.findViewById(R.id.waitingMessage);
+                        errorMsg.setText(result.get("error"));
+                        Button retryBtn = (Button) rootView.findViewById(R.id.button_retry);
+                        retryBtn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                updateUi();
+                            }
+                        });
+                        retryBtn.setVisibility(View.VISIBLE);
+                    } else {
+                        updateForecastOnUi(result);
+                        spinner.setVisibility(View.GONE);
+                        ((MainActivity)getActivity()).showTabs();
+                    }
+                    connectToServerIsRunning = false;
                 }
-                connectToServerIsRunning = false;
             }
+
 
         }
 

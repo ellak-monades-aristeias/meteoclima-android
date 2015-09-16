@@ -50,6 +50,8 @@ public class MainActivity extends ActionBarActivity implements
 
         viewPager.setAdapter(mAdapter);
         actionBar.setHomeButtonEnabled(false);
+        actionBar.setDisplayShowHomeEnabled(true);
+        actionBar.setIcon(R.mipmap.ic_launcher);
 
         //hide tabs until location is ready and data from server is fetched
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);

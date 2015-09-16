@@ -31,6 +31,8 @@ public class Helper {
     private static boolean gotForecasts = false;
     private static boolean blockWidgetService = false;
     private static String currentForecastDateTime;
+    private static String currentForecastLat;
+    private static String currentForecastLon;
 
     private static final String PREF_NAME = "MeteoclimaPreferences";
     private static final String LAST_KNOWN_LOCATION = "LAST_KNOWN_LOCATION";
@@ -40,7 +42,7 @@ public class Helper {
     public static final String LOG_TAG = "Meteoclima";
 
     // url to get the location list
-    public static String url_server = "http://83.212.85.153/~spyros/meteoclima/db_get_locations.php";
+    public static String url_server = "http://195.251.31.119/~android/db_get_locations.php";
 
     // JSON Node names
     public static final String TAG_SUCCESS = "success";
@@ -58,13 +60,16 @@ public class Helper {
     public static final String TAG_SNOW = "snow";
     public static final String TAG_WINDSP = "windsp";
     public static final String TAG_WINDDIR = "winddir";
+    public static final String TAG_WINDDIR_SYM = "windDirSym";
     public static final String TAG_RELHUM = "relhum";
-    public static final String TAG_LCOUD = "lcloud";
+    /*public static final String TAG_LCOUD = "lcloud";
     public static final String TAG_MCLOUD = "mcloud";
-    public static final String TAG_HCLOUD = "hcloud";
+    public static final String TAG_HCLOUD = "hcloud";*/
     public static final String TAG_WEATHER_IMAGE = "weatherImage";
     public static final String TAG_WIND_BEAUFORT = "windBeaufort";
+    public static final String TAG_DISTANCE = "distance";
     public static final String TAG_LAND_OR_SEA = "landOrSea";
+    public static final String TAG_HEAT_INDEX = "heatIndex";
 
     public Helper(Context context){
         ctx = context;
@@ -143,6 +148,22 @@ public class Helper {
         Helper.currentForecastDateTime = currentForecastDateTime;
     }
 
+    public static String getCurrentForecastLat() {
+        return Helper.currentForecastLat;
+    }
+
+    public static void setCurrentForecastLat(String currentForecastLat) {
+        Helper.currentForecastLat = currentForecastLat;
+    }
+
+    public static String getCurrentForecastLon() {
+        return Helper.currentForecastLon;
+    }
+
+    public static void setCurrentForecastLon(String currentForecastLon) {
+        Helper.currentForecastLon = currentForecastLon;
+    }
+
     public String returnBasicWeatherDescription(int num) {
         String basicWeatherDescription;
         switch (num) {
@@ -210,11 +231,11 @@ public class Helper {
     }
 
     public String[] getForecastDescriptions() {
-        return new String[]{"Pressure (hPa)","Temperature (℃)","Rain (mm)","Snow (mm)","Wind speed (m/s)","Wind direction (degrees)","Humidity (%)","landOrSea"};
+        return new String[]{"Heat Index (℃)","Pressure (hPa)","Rain (mm)","Snow (mm)","Humidity (%)"};
     }
 
     public String[] getTagNames() {
-        return new String[]{"mslp","temp","rain","snow","windsp","winddir","relhum","landOrSea"};
+        return new String[]{"heatIndex","mslp","rain","snow","relhum"};
     }
 
     public String formatTemperature(String temp) {
@@ -223,7 +244,8 @@ public class Helper {
     }
 
     public static Date getNearestDate(List<Date> dates, Date currentDate) {
-        long minDiff = -1, currentTime = currentDate.getTime();
+        long minDiff = -1;
+        long currentTime = currentDate.getTime();
         Date minDate = null;
         for (Date date : dates) {
             long diff = Math.abs(currentTime - date.getTime());

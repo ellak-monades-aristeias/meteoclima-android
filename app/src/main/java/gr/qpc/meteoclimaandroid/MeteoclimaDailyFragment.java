@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -94,12 +95,22 @@ public class MeteoclimaDailyFragment extends Fragment {
 
                     // Storing each json item in variable
                     String id = c.getString(Helper.TAG_ID);
+                    String lat = c.getString(Helper.TAG_LAT);
+                    String lon = c.getString(Helper.TAG_LON);
                     String yy = c.getString(Helper.TAG_YEAR);
                     String mm = c.getString(Helper.TAG_MONTH);
                     String dd = c.getString(Helper.TAG_DAY);
                     String hh = c.getString(Helper.TAG_HOUR);
                     String temp = c.getString(Helper.TAG_TEMP);
                     String weatherImage = c.getString(Helper.TAG_WEATHER_IMAGE);
+                    String mslp = c.getString(Helper.TAG_MSLP);
+                    String rain = c.getString(Helper.TAG_RAIN);
+                    String snow = c.getString(Helper.TAG_SNOW);
+                    String windBeaufort = c.getString(Helper.TAG_WIND_BEAUFORT);
+                    String winddir = c.getString(Helper.TAG_WINDDIR);
+                    String windDirSym = c.getString(Helper.TAG_WINDDIR_SYM);
+                    String relhum = c.getString(Helper.TAG_RELHUM);
+                    String heatIndex = c.getString(Helper.TAG_HEAT_INDEX);
 
                     //parse date and convert it from UTC to local time
                     String dateStr = yy + " " + mm + " " + dd + " " + hh;
@@ -114,13 +125,29 @@ public class MeteoclimaDailyFragment extends Fragment {
                     //parse the current forecasts date from helper to compare it
                     Date currentForecastDate = readFormat.parse(helper.getCurrentForecastDateTime());
 
-                    if (date.compareTo(currentForecastDate) > 0) {
+                    Calendar cal1 = Calendar.getInstance();
+                    cal1.setTime(date); //forecast's in the loop cal
+
+                    //calculate tomorrow's date
+                    Calendar cal3 = Calendar.getInstance();
+                    cal3.setTime(currentForecastDate); //current forecast's cal
+                    cal3.add(Calendar.DATE, 1); //current forecast's cal plus one day
+
+                    if (cal1.get(Calendar.DAY_OF_YEAR) >= cal3.get(Calendar.DAY_OF_YEAR)) {
                         //put everything in hashmaps and then in an ArrayList to populate the listView
                         HashMap<String,String> map = new HashMap<String,String>();
-                        map.put("0", id);
-                        map.put("1", formattedDate);
-                        map.put("2", temp);
-                        map.put("3", weatherImage);
+                        map.put("id", id);
+                        map.put("formattedDate", formattedDate);
+                        map.put(Helper.TAG_TEMP, temp);
+                        map.put(Helper.TAG_WEATHER_IMAGE, weatherImage);
+                        map.put(Helper.TAG_MSLP, mslp);
+                        map.put(Helper.TAG_RAIN, rain);
+                        map.put(Helper.TAG_SNOW, snow);
+                        map.put(Helper.TAG_WIND_BEAUFORT, windBeaufort);
+                        map.put(Helper.TAG_WINDDIR, winddir);
+                        map.put(Helper.TAG_WINDDIR_SYM, windDirSym);
+                        map.put(Helper.TAG_RELHUM, relhum);
+                        map.put(Helper.TAG_HEAT_INDEX, heatIndex);
                         list.add(map);
                     }
 
