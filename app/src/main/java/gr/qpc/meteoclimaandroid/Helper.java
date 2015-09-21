@@ -62,9 +62,6 @@ public class Helper {
     public static final String TAG_WINDDIR = "winddir";
     public static final String TAG_WINDDIR_SYM = "windDirSym";
     public static final String TAG_RELHUM = "relhum";
-    /*public static final String TAG_LCOUD = "lcloud";
-    public static final String TAG_MCLOUD = "mcloud";
-    public static final String TAG_HCLOUD = "hcloud";*/
     public static final String TAG_WEATHER_IMAGE = "weatherImage";
     public static final String TAG_WIND_BEAUFORT = "windBeaufort";
     public static final String TAG_DISTANCE = "distance";
@@ -93,7 +90,7 @@ public class Helper {
                 Geocoder geo = new Geocoder(ctx, Locale.getDefault());
                 List<Address> addresses = geo.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
                 if (addresses.isEmpty()) {
-                    locality = "Location not found.";
+                    locality = ctx.getString(R.string.unknown);
                 }
                 else {
                     if (addresses.size() > 0) {

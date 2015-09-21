@@ -4,29 +4,38 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
+import org.achartengine.chart.PointStyle;
+import org.achartengine.model.TimeSeries;
 import org.achartengine.model.XYMultipleSeriesDataset;
-import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
+import org.achartengine.renderer.XYSeriesRenderer;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class MeteoclimaChartActivity extends AppCompatActivity {
 
     private ActionBar actionbar;
     private GraphicalView mChart;
-    private XYMultipleSeriesDataset mDataset = new XYMultipleSeriesDataset();
-    private XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();
-    private XYSeries mCurrentSeries;
-    private XYMultipleSeriesRenderer mCurrentRenderer;
-    private int chartPointsCounter;
-    private Boolean chartCompleted;
+    private XYMultipleSeriesDataset mDataset;
+    private XYMultipleSeriesRenderer mRenderer;
+    private TimeSeries tempSeries;
+    private XYSeriesRenderer tempRenderer;
+    private TimeSeries windSeries;
+    private XYSeriesRenderer windRenderer;
     private ArrayList<String> chartHoursPoints;
     private ArrayList<String> chartTempPoints;
+    private ArrayList<String> chartWindPoints;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +45,7 @@ public class MeteoclimaChartActivity extends AppCompatActivity {
         actionbar.setDisplayHomeAsUpEnabled(true);
         chartHoursPoints = getIntent().getStringArrayListExtra("hours");
         chartTempPoints = getIntent().getStringArrayListExtra("temp_points");
+        chartWindPoints = getIntent().getStringArrayListExtra("wind_points");
     }
 
     @Override
@@ -44,7 +54,7 @@ public class MeteoclimaChartActivity extends AppCompatActivity {
         LinearLayout layout = (LinearLayout) findViewById(R.id.chart);
         if (mChart == null) {
             initChart();
-            mChart = ChartFactory.getLineChartView(this, mDataset, mRenderer);
+            mChart = ChartFactory.getTimeChartView(this, mDataset, mRenderer, "HH:mm");
             layout.addView(mChart);
         } else {
             mChart.repaint();
@@ -52,42 +62,82 @@ public class MeteoclimaChartActivity extends AppCompatActivity {
     }
 
     private void initChart() {
-        mCurrentSeries = new XYSeries("Temperature");
-        mDataset.addSeries(mCurrentSeries);
-        /*mCurrentRenderer = new XYMultipleSeriesRenderer();
-        mCurrentRenderer.setPointStyle(PointStyle.CIRCLE);
-        mCurrentRenderer.setLineWidth(6);
-        mCurrentRenderer.setPointStrokeWidth(14);
-        mCurrentRenderer.setColor(Color.parseColor("#505050"));
-        mRenderer.addSeriesRenderer(mCurrentRenderer);*/
-        mRenderer.setZoomEnabled(false);
-        mRenderer.setMarginsColor(Color.WHITE);
-        //mRenderer.setShowLegend(false);
-        mRenderer.setApplyBackgroundColor(true);
-        mRenderer.setAxesColor(Color.BLACK);
-        mRenderer.setXLabelsColor(Color.WHITE);
-        mRenderer.setYLabelsColor(0, Color.RED);
-        //mRenderer.setYLabelsPadding(-100);
-        //mRenderer.setLabelsTextSize(35);
-        mRenderer.setBackgroundColor(0x300000FF);
+        DisplayMetrics metrics = getResources().getDisplayMetrics();
+
+        tempSeries = new TimeSeries("Temperature (℃)");
+        windSeries = new TimeSeries("Wind (Bf)");
+
+        //parse date from hour of day
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.ENGLISH);
+        dateFormat.setTimeZone(TimeZone.getDefault());
+
 
         for (int i = 0; i < chartHoursPoints.size(); i++) {
-            mCurrentSeries.add(Double.parseDouble(chartHoursPoints.get(i)), Double.parseDouble(chartTempPoints.get(i)));
+            Date date = null;
+            try {
+                date = dateFormat.parse(chartHoursPoints.get(i));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            tempSeries.add(date, Double.parseDouble(chartTempPoints.get(i)));
+            windSeries.add(date, Double.parseDouble(chartWindPoints.get(i)));
         }
+
+        mDataset = new XYMultipleSeriesDataset();
+        mDataset.addSeries(tempSeries);
+        mDataset.addSeries(windSeries);
+
+        tempRenderer = new XYSeriesRenderer();
+        tempRenderer.setPointStyle(PointStyle.CIRCLE);
+        tempRenderer.setLineWidth(4);
+        tempRenderer.setColor(Color.RED);
+        tempRenderer.setDisplayBoundingPoints(true);
+        tempRenderer.setPointStyle(PointStyle.CIRCLE);
+        tempRenderer.setPointStrokeWidth(3);
+
+        windRenderer = new XYSeriesRenderer();
+        windRenderer.setPointStyle(PointStyle.CIRCLE);
+        windRenderer.setLineWidth(4);
+        windRenderer.setColor(Color.parseColor("#009933"));
+        windRenderer.setDisplayBoundingPoints(true);
+        windRenderer.setPointStyle(PointStyle.CIRCLE);
+        windRenderer.setPointStrokeWidth(3);
+        
+        mRenderer = new XYMultipleSeriesRenderer();
+        mRenderer.addSeriesRenderer(tempRenderer);
+        mRenderer.addSeriesRenderer(windRenderer);
+        mRenderer.setYAxisMin(-10);
+        mRenderer.setYAxisMax(40);
+        mRenderer.setZoomEnabled(false, false);
+        mRenderer.setPanEnabled(false, false);
+        mRenderer.setMarginsColor(Color.WHITE);
+        mRenderer.setLegendTextSize(metrics.scaledDensity * 16);
+        mRenderer.setApplyBackgroundColor(true);
+        mRenderer.setAxesColor(Color.BLACK);
+        mRenderer.setLabelsColor(Color.BLACK);
+        mRenderer.setXLabelsColor(Color.BLUE);
+        mRenderer.setYLabelsColor(0, Color.BLUE);
+        mRenderer.setYLabelsPadding(metrics.scaledDensity * 10);
+        mRenderer.setLabelsTextSize(metrics.scaledDensity * 12);
+        mRenderer.setShowGrid(true);
+        mRenderer.setAxisTitleTextSize(metrics.scaledDensity * 14);
+
+        mRenderer.setXTitle("Time (HH:mm)");
+        mRenderer.setMargins(new int[]{(int) metrics.scaledDensity * 30, (int) metrics.scaledDensity * 45, (int)metrics.scaledDensity * 100, (int)metrics.scaledDensity * 20});
+
+
+
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                // app icon in action bar clicked; go home
+                this.finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-
-        return super.onOptionsItemSelected(item);
     }
 }

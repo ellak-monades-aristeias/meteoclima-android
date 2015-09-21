@@ -6,6 +6,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.StrictMode;
 import android.support.v4.app.Fragment;
 import android.text.Html;
@@ -48,6 +49,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import gr.qpc.meteoclimaandroid.adapters.MySimpleAdapter;
 
@@ -311,10 +314,11 @@ public class MeteoclimaMainFragment extends Fragment implements
         //first update the location name
         String locationName = helper.getLocationName(mLastLocation);
         if (locationName.equals(getString(R.string.waiting_for_location))) {
-            updateUi();
+            if (!getLocationNameIsRunning) {
+                new GetLocationName(getActivity()).execute();
+            }
         } else {
             locationTextView.setText(locationName);
-            /*locationTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);*/
         }
 
         //and then update the forecast
@@ -417,6 +421,26 @@ public class MeteoclimaMainFragment extends Fragment implements
         }
     }
 
+    public void repeatGetLocationName() {
+        final Handler handler = new Handler();
+        Timer timer = new Timer();
+        TimerTask doAsynchronousTask = new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {
+                        try {
+                            new GetLocationName(getActivity()).execute();
+                        } catch (Exception e) {
+                            // TODO Auto-generated catch block
+                        }
+                    }
+                });
+            }
+        };
+        timer.schedule(doAsynchronousTask, 10000); //execute in 10 seconds
+    }
+
     private class GetLocationName extends AsyncTask<String, Void, String> {
 
         Context ctx;
@@ -436,7 +460,7 @@ public class MeteoclimaMainFragment extends Fragment implements
             }
             if (mLocationClient.getLastLocation() == null) {
                 locationName = helper.getLastKnownLocation();
-
+                repeatGetLocationName(); //retry in 10 seconds
             } else {
                 mLastLocation = mLocationClient.getLastLocation();
                 locationName = helper.getLocationName(mLastLocation);
@@ -446,8 +470,8 @@ public class MeteoclimaMainFragment extends Fragment implements
 
         @Override
         protected void onPostExecute(String locationName) {
-            if (locationName.equals(getString(R.string.waiting_for_location))) {
-                /*locationTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);*/
+            if (!locationName.equals(getString(R.string.waiting_for_location))) {
+                locationTextView.setText(locationName);
                 getLocationNameIsRunning = false;
             }
         }

@@ -10,6 +10,9 @@ import android.net.Uri;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 /**
  * Implementation of App Widget functionality.
  */
@@ -49,15 +52,29 @@ public class MeteoclimaAppWidget extends AppWidgetProvider {
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
 
-        Helper helper = new Helper(context);
+        final Context ctx = context;
+        final int widgetId = appWidgetId;
+        final AppWidgetManager widgetManager = appWidgetManager;
+
+        final Helper helper = new Helper(ctx);
+
+        final Timer timer = new Timer();
+        final TimerTask retryTask = new TimerTask() {
+            @Override
+            public void run() {
+                Log.d(helper.LOG_TAG, "MeteoclimaAppWidget: Retrying...");
+                MeteoclimaAppWidget.updateAppWidget(ctx, widgetManager, widgetId);
+            }
+        };
 
         //start the MeteoclimaWidgetService to update widget's data
+        final Intent i= new Intent(ctx, MeteoclimaWidgetService.class);
+        i.putExtra("widget_id", appWidgetId);
         if (!helper.isBlockWidgetService()) {
-            Intent i= new Intent(context, MeteoclimaWidgetService.class);
-            i.putExtra("widget_id", appWidgetId);
-            context.startService(i);
+            ctx.startService(i);
         } else {
-            Log.d(helper.LOG_TAG,"MeteoclimaAppWidget: Widget update service is blocked because the main app is running.");
+            Log.d(helper.LOG_TAG, "MeteoclimaAppWidget: Widget update service is blocked because the main app is running.");
+            timer.schedule(retryTask, 60000); //execute in 1 minute
         }
 
         //open the Meteoclima app on click

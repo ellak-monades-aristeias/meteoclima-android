@@ -727,10 +727,11 @@ int string sorry_no_internet_connection 0x7f070036
 int string title_activity_meteoclima_chart 0x7f070037
 int string title_activity_meteoclima_details 0x7f070038
 int string title_activity_meteoclima_settings 0x7f070039
-int string wait_getting_data_from_server 0x7f07003a
-int string waiting_for_location 0x7f07003b
-int string widget_interval_setting_label 0x7f07003c
-int string widget_interval_setting_value 0x7f07003d
+int string unknown 0x7f07003a
+int string wait_getting_data_from_server 0x7f07003b
+int string waiting_for_location 0x7f07003c
+int string widget_interval_setting_label 0x7f07003d
+int string widget_interval_setting_value 0x7f07003e
 int style AlertDialog_AppCompat 0x7f09006b
 int style AlertDialog_AppCompat_Light 0x7f09006c
 int style Animation_AppCompat_Dialog 0x7f09006d

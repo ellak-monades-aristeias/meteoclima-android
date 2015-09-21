@@ -1948,10 +1948,11 @@ containing a value of this type.
         public static final int title_activity_meteoclima_chart=0x7f070037;
         public static final int title_activity_meteoclima_details=0x7f070038;
         public static final int title_activity_meteoclima_settings=0x7f070039;
-        public static final int wait_getting_data_from_server=0x7f07003a;
-        public static final int waiting_for_location=0x7f07003b;
-        public static final int widget_interval_setting_label=0x7f07003c;
-        public static final int widget_interval_setting_value=0x7f07003d;
+        public static final int unknown=0x7f07003a;
+        public static final int wait_getting_data_from_server=0x7f07003b;
+        public static final int waiting_for_location=0x7f07003c;
+        public static final int widget_interval_setting_label=0x7f07003d;
+        public static final int widget_interval_setting_value=0x7f07003e;
     }
     public static final class style {
         public static final int AlertDialog_AppCompat=0x7f09006b;

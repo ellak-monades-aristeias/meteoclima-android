@@ -49,13 +49,13 @@ public class MyArrayAdapter extends ArrayAdapter {
             imageView.setImageResource(helper.returnDrawableId(Integer.parseInt(item.get(Helper.TAG_WEATHER_IMAGE))));
             firstLine.setText(item.get("formattedDate"));
             secondLine.setText(helper.formatTemperature(item.get(Helper.TAG_TEMP)) + " " + helper.returnBasicWeatherDescription(Integer.parseInt(item.get(Helper.TAG_WEATHER_IMAGE))));
-            thirdLine.setText(Html.fromHtml("<b>Wind:</b> " + item.get(Helper.TAG_WIND_BEAUFORT) + " B / " + item.get(Helper.TAG_WINDDIR_SYM) + " <b>Pressure:</b> " + item.get(Helper.TAG_MSLP) + " hPa"));
+            thirdLine.setText(Html.fromHtml("<b>Wind:</b> " + item.get(Helper.TAG_WIND_BEAUFORT) + " Bf / " + item.get(Helper.TAG_WINDDIR_SYM) + " <b>Pressure (hPa):</b> " + item.get(Helper.TAG_MSLP)));
             if (!item.get(Helper.TAG_RAIN).equals("0.0")) {
-                forthLine.setText(Html.fromHtml("<b>Rain:</b> " + item.get(Helper.TAG_RAIN) + " <b>Humidity:</b> " + item.get(Helper.TAG_RELHUM)));
+                forthLine.setText(Html.fromHtml("<b>Rain (mm):</b> " + item.get(Helper.TAG_RAIN) + " <b>Humidity (%):</b> " + item.get(Helper.TAG_RELHUM)));
             } else if (!item.get(Helper.TAG_SNOW).equals("0.0")) {
-                forthLine.setText(Html.fromHtml("<b>Snow:</b> " + item.get(Helper.TAG_RAIN) + " <b>Humidity:</b> " + item.get(Helper.TAG_RELHUM)));
+                forthLine.setText(Html.fromHtml("<b>Snow (mm):</b> " + item.get(Helper.TAG_RAIN) + " <b>Humidity (%):</b> " + item.get(Helper.TAG_RELHUM)));
             } else {
-                forthLine.setText(Html.fromHtml("<b>Humidity:</b> " + item.get(Helper.TAG_RELHUM) + " <b>Heat Index (Feel):</b> " + item.get(Helper.TAG_HEAT_INDEX)));
+                forthLine.setText(Html.fromHtml("<b>Humidity (%):</b> " + item.get(Helper.TAG_RELHUM) + " <b>Heat Index (℃):</b> " + item.get(Helper.TAG_HEAT_INDEX)));
             }
         }
 

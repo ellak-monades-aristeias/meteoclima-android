@@ -3,7 +3,6 @@ package gr.qpc.meteoclimaandroid;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,7 +39,7 @@ public class MeteoclimaHourlyFragment extends Fragment {
     private ArrayList<HashMap<String, String>> list;
     private ArrayList<String> chartHourPoints;
     private ArrayList<String> chartTempPoints;
-    private int chartPointsCounter;
+    private ArrayList<String> chartWindPoints;
     private Boolean chartCompleted;
 
 
@@ -58,7 +57,7 @@ public class MeteoclimaHourlyFragment extends Fragment {
 
         chartHourPoints = new ArrayList<String>();
         chartTempPoints = new ArrayList<String>();
-        chartPointsCounter = 0;
+        chartWindPoints = new ArrayList<String>();
         chartCompleted = false;
 
         chartButton = (Button) rootView.findViewById(R.id.chart_button_hourly);
@@ -68,6 +67,7 @@ public class MeteoclimaHourlyFragment extends Fragment {
                 Intent i = new Intent(getActivity(), MeteoclimaChartActivity.class);
                 i.putStringArrayListExtra("hours", chartHourPoints);
                 i.putStringArrayListExtra("temp_points", chartTempPoints);
+                i.putStringArrayListExtra("wind_points", chartWindPoints);
                 startActivity(i);
             }
         });
@@ -99,14 +99,11 @@ public class MeteoclimaHourlyFragment extends Fragment {
         }
     }
 
-    private void addDataToChart(String time, String temp) {
+    private void addDataToChart(String time, String temp, String wind) {
         if (!chartCompleted) {
             chartHourPoints.add(time);
             chartTempPoints.add(temp);
-            /*mCurrentSeries.add(chartPointsCounter,y);
-            mChart.repaint();
-            chartPointsCounter = chartPointsCounter+3;*/
-            //System.out.println("Added point " + chartPointsCounter + "," + y + " to chart");
+            chartWindPoints.add(wind);
         }
     }
 
@@ -199,10 +196,8 @@ public class MeteoclimaHourlyFragment extends Fragment {
                             list.add(map);
                             //increment forecastCounter
                             forecastCounter++;
-
-                            Log.d(Helper.LOG_TAG,"ADDED forecastCounter = " + forecastCounter);
                             //add point to chart
-                            addDataToChart(hh,temp);
+                            addDataToChart(printFormat.format(date),temp, windBeaufort);
                         }
                     }
                 }
@@ -219,9 +214,7 @@ public class MeteoclimaHourlyFragment extends Fragment {
             }
             ListView listView = (ListView) rootView.findViewById(R.id.listview_hourly);
             listView.setAdapter(adapter);
-            Log.d(Helper.LOG_TAG, "list size: " + list.size());
-
-                    listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                             Intent intent = new Intent(getActivity(), MeteoclimaDetailsActivity.class);

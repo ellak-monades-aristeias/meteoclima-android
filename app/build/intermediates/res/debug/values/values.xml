@@ -269,6 +269,7 @@
     <string name="title_activity_meteoclima_chart">Meteoclima Chart</string>
     <string name="title_activity_meteoclima_details">Forecast\'s Details</string>
     <string name="title_activity_meteoclima_settings">Settings</string>
+    <string name="unknown">Unknown</string>
     <string name="wait_getting_data_from_server">Getting data from server...</string>
     <string name="waiting_for_location">Location</string>
     <string name="widget_interval_setting_label">Widget update interval (mins): </string>

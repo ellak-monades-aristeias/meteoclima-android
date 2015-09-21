@@ -13,6 +13,7 @@
     <string name="widget_interval_setting_value">30</string>
     <string name="retry">Retry</string>
     <string name="waiting_for_location">Location</string>
+    <string name="unknown">Unknown</string>
     <string name="forecast_not_available">Forecast not available</string>
     <string name="no_internet_connection">No Internet connection.</string>
     <string name="sorry_no_forecast_available">Sorry! No forecast available.</string>
