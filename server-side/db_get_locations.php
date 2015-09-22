@@ -1,7 +1,7 @@
 <?php
  
 /*
- * Following code will get the nearest locations' forecasts
+ * Following code will get the nearest locations
  */
  
 // array for JSON response
@@ -19,12 +19,12 @@ if (isset($_GET["lat"]) && isset($_GET["lat"])) {
     $lon = $_GET['lon'];
  
     // get the nearest position
-    $result = mysql_query("SELECT *, 
+    $result = mysql_query("SELECT id,yy,mm,dd,hh,lat,lon,mslp,temp,rain,snow,windsp,winddir,relhum,weatherImage,windBeaufort,landOrSea,heatIndex,windDirSym,
 	 ( 6371 * acos( cos( radians($lat) ) * cos( radians( lat ) ) 
 	  * cos( radians( lon ) - radians($lon) ) + sin( radians($lat) ) 
-	  * sin( radians( lat ) ) ) ) AS distance 
+	  * sin( radians( lat ) ) ) ) AS distance
 	FROM meteoclima
-	WHERE DATE(CONCAT(`yy`,'-',LPAD(`mm`,2,'00'),'-',LPAD(`dd`,2,'00'))) BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 2 DAY)
+	WHERE DATE(CONCAT(`yy`,'-',LPAD(`mm`,2,'00'),'-',LPAD(`dd`,2,'00'))) BETWEEN DATE_SUB(NOW(), INTERVAL 1 DAY) AND DATE_ADD(NOW(), INTERVAL 4 DAY)
 	ORDER BY distance,yy,mm,dd,hh LIMIT 24;") or die(mysql_error());
  
     // check for empty result
@@ -50,12 +50,15 @@ if (isset($_GET["lat"]) && isset($_GET["lat"])) {
 			$location["windsp"] = $row["windsp"];
 			$location["winddir"] = $row["winddir"];
 			$location["relhum"] = $row["relhum"];
-			$location["lcloud"] = $row["lcloud"];
+			/*$location["lcloud"] = $row["lcloud"];
 			$location["mcloud"] = $row["mcloud"];
-			$location["hcloud"] = $row["hcloud"];
+			$location["hcloud"] = $row["hcloud"];*/
 			$location["weatherImage"] = $row["weatherImage"];
 			$location["windBeaufort"] = $row["windBeaufort"];
 			$location["landOrSea"] = $row["landOrSea"];
+			$location["heatIndex"] = $row["heatIndex"];
+			$location["windDirSym"] = $row["windDirSym"];
+			$location["distance"] = $row["distance"];
 	 
 			// push single location into final response array
 			array_push($response["locations"], $location);
