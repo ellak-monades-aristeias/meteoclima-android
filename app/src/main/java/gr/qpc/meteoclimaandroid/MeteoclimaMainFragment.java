@@ -6,7 +6,6 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.StrictMode;
 import android.support.v4.app.Fragment;
 import android.text.Html;
@@ -422,23 +421,18 @@ public class MeteoclimaMainFragment extends Fragment implements
     }
 
     public void repeatGetLocationName() {
-        final Handler handler = new Handler();
         Timer timer = new Timer();
         TimerTask doAsynchronousTask = new TimerTask() {
             @Override
             public void run() {
-                handler.post(new Runnable() {
-                    public void run() {
-                        try {
-                            new GetLocationName(getActivity()).execute();
-                        } catch (Exception e) {
-                            // TODO Auto-generated catch block
-                        }
-                    }
-                });
+                try {
+                    new GetLocationName(getActivity()).execute();
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                }
             }
         };
-        timer.schedule(doAsynchronousTask, 10000); //execute in 10 seconds
+        timer.schedule(doAsynchronousTask,10000); //execute in 10 seconds
     }
 
     private class GetLocationName extends AsyncTask<String, Void, String> {

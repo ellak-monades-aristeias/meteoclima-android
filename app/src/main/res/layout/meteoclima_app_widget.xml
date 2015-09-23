@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:padding="@dimen/widget_margin" android:background="@drawable/appwidget_bg" android:id="@+id/widgetBaseLayout">
     <LinearLayout
@@ -24,7 +24,7 @@
             android:orientation="vertical"
             android:layout_width="0dp"
             android:layout_weight=".7"
-            android:layout_height="fill_parent"
+            android:layout_height="match_parent"
             android:layout_gravity="center_vertical">
             <TextView
                 android:layout_width="fill_parent"
@@ -56,4 +56,4 @@
                 android:layout_marginLeft="10dip" />
         </LinearLayout>
     </LinearLayout>
-</RelativeLayout>
+</FrameLayout>

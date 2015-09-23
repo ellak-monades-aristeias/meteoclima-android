@@ -54,7 +54,11 @@ public class MeteoclimaChartActivity extends AppCompatActivity {
         LinearLayout layout = (LinearLayout) findViewById(R.id.chart);
         if (mChart == null) {
             initChart();
-            mChart = ChartFactory.getTimeChartView(this, mDataset, mRenderer, "HH:mm");
+            if (chartHoursPoints.size() > 8) {
+                mChart = ChartFactory.getTimeChartView(this, mDataset, mRenderer, "dd/MM/yy");
+            } else {
+                mChart = ChartFactory.getTimeChartView(this, mDataset, mRenderer, "HH:mm");
+            }
             layout.addView(mChart);
         } else {
             mChart.repaint();

@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
@@ -33,10 +34,14 @@ public class MeteoclimaDailyFragment extends Fragment {
 
     private View rootView;
     private LinearLayout spinnerDaily;
+    private Button chartButton;
     private Helper helper;
     private JSONArray retrievedForecasts;
     private ArrayList<HashMap<String, String>> list;
-
+    private ArrayList<String> chartHourPoints;
+    private ArrayList<String> chartTempPoints;
+    private ArrayList<String> chartWindPoints;
+    private Boolean chartCompleted;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -50,7 +55,32 @@ public class MeteoclimaDailyFragment extends Fragment {
 
         helper = new Helper(getActivity());
 
+        chartHourPoints = new ArrayList<String>();
+        chartTempPoints = new ArrayList<String>();
+        chartWindPoints = new ArrayList<String>();
+        chartCompleted = false;
+
+        chartButton = (Button) rootView.findViewById(R.id.chart_button_daily);
+        chartButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(getActivity(), MeteoclimaChartActivity.class);
+                i.putStringArrayListExtra("hours", chartHourPoints);
+                i.putStringArrayListExtra("temp_points", chartTempPoints);
+                i.putStringArrayListExtra("wind_points", chartWindPoints);
+                startActivity(i);
+            }
+        });
+
         return rootView;
+    }
+
+    private void addDataToChart(String time, String temp, String wind) {
+        if (!chartCompleted) {
+            chartHourPoints.add(time);
+            chartTempPoints.add(temp);
+            chartWindPoints.add(wind);
+        }
     }
 
     @Override
@@ -77,6 +107,8 @@ public class MeteoclimaDailyFragment extends Fragment {
             populateList();
         }
     }
+
+
 
     private void populateList() {
         if (Helper.isGotForecasts()) {
@@ -149,6 +181,8 @@ public class MeteoclimaDailyFragment extends Fragment {
                         map.put(Helper.TAG_RELHUM, relhum);
                         map.put(Helper.TAG_HEAT_INDEX, heatIndex);
                         list.add(map);
+                        //add point to chart
+                        addDataToChart(printFormat.format(date), temp, windBeaufort);
                     }
 
 
