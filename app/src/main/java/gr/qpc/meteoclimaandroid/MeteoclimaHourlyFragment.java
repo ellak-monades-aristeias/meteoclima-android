@@ -78,8 +78,10 @@ public class MeteoclimaHourlyFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (isVisible()) {
-            populateList();
+        if (isAdded()) {
+            if (isVisible()) {
+                populateList();
+            }
         }
     }
 

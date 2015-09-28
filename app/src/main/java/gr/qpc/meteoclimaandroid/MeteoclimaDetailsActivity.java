@@ -154,6 +154,7 @@ public class MeteoclimaDetailsActivity extends AppCompatActivity {
 
         String[] forecastDescriptions = helper.getForecastDescriptions();
         String[] tagNames = helper.getTagNames();
+        String[] tagUnits = helper.getForecastUnits();
         GridView gridView = (GridView) findViewById(R.id.gridviewDetails);
 
         // create the grid item mapping
@@ -166,13 +167,13 @@ public class MeteoclimaDetailsActivity extends AppCompatActivity {
         //first add the wind separately
         HashMap<String, String> windToFill = new HashMap<String, String>();
         windToFill.put("forecast_name", "Wind speed/direction");
-        windToFill.put("value", map.get(Helper.TAG_WIND_BEAUFORT) + " Bf / " + map.get(Helper.TAG_WINDDIR_SYM));
+        windToFill.put("value", map.get(Helper.TAG_WIND_BEAUFORT) + " " + Helper.UNIT_BEAUFORT + " / " + map.get(Helper.TAG_WINDDIR_SYM));
         fillMaps.add(windToFill);
 
         for(int i = 0; i < forecastDescriptions.length; i++){
             HashMap<String, String> mapToFill = new HashMap<String, String>();
             mapToFill.put("forecast_name", forecastDescriptions[i]);
-            mapToFill.put("value", map.get(tagNames[i]));
+            mapToFill.put("value", map.get(tagNames[i]) + " " + tagUnits[i]);
             fillMaps.add(mapToFill);
         }
 

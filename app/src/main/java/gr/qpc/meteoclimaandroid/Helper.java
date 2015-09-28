@@ -68,6 +68,14 @@ public class Helper {
     public static final String TAG_LAND_OR_SEA = "landOrSea";
     public static final String TAG_HEAT_INDEX = "heatIndex";
 
+    //units of measurement
+    public static final String UNIT_MSLP = "hPa";
+    public static final String UNIT_TEMP = "℃";
+    public static final String UNIT_RAIN = "mm";
+    public static final String UNIT_SNOW = "mm";
+    public static final String UNIT_RELHUM = "%";
+    public static final String UNIT_BEAUFORT = "Bf";
+
     public Helper(Context context){
         ctx = context;
         prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
@@ -228,7 +236,11 @@ public class Helper {
     }
 
     public String[] getForecastDescriptions() {
-        return new String[]{"Heat Index (℃)","Pressure (hPa)","Rain (mm)","Snow (mm)","Humidity (%)"};
+        return new String[]{"Heat Index (HI)","Pressure","Rain","Snow","Humidity"};
+    }
+
+    public String[] getForecastUnits() {
+        return new String[]{UNIT_TEMP,UNIT_MSLP,UNIT_RAIN,UNIT_SNOW,UNIT_RELHUM};
     }
 
     public String[] getTagNames() {

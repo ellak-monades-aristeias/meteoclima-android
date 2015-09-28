@@ -57,7 +57,7 @@ public class MeteoclimaChartActivity extends AppCompatActivity {
             if (chartHoursPoints.size() > 8) {
                 mChart = ChartFactory.getTimeChartView(this, mDataset, mRenderer, "dd/MM/yy");
             } else {
-                mChart = ChartFactory.getTimeChartView(this, mDataset, mRenderer, "HH:mm");
+                mChart = ChartFactory.getTimeChartView(this, mDataset, mRenderer, "dd/MM HH");
             }
             layout.addView(mChart);
         } else {
@@ -106,7 +106,7 @@ public class MeteoclimaChartActivity extends AppCompatActivity {
         windRenderer.setDisplayBoundingPoints(true);
         windRenderer.setPointStyle(PointStyle.CIRCLE);
         windRenderer.setPointStrokeWidth(3);
-        
+
         mRenderer = new XYMultipleSeriesRenderer();
         mRenderer.addSeriesRenderer(tempRenderer);
         mRenderer.addSeriesRenderer(windRenderer);

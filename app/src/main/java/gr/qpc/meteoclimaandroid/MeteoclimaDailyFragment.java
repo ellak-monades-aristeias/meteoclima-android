@@ -86,17 +86,20 @@ public class MeteoclimaDailyFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        getFragmentManager().executePendingTransactions();
-        if (isVisible()) {
-            populateList();
+        if (isAdded()) {
+            if (isVisible()) {
+                populateList();
+            }
         }
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        if (isVisible()) {
-            populateList();
+        if (isAdded()) {
+            if (isVisible()) {
+                populateList();
+            }
         }
     }
 

@@ -16,7 +16,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -45,6 +44,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
@@ -62,12 +62,19 @@ public class MeteoclimaMainFragment extends Fragment implements
     private LocationClient mLocationClient;
     private TextView locationTextView;
     private TextView dateTime;
+    private TextView firstLine;
+    private TextView secondLine;
+    private TextView thirdLine;
+    private TextView forthLine;
     private ImageView imageView;
+    private ImageView nextImageView;
+    private LinearLayout homeNext;
     private LinearLayout spinner;
     private Helper helper;
     private ArrayList<HashMap<String, String>> retrievedLocationsList;
     private ArrayList<Float> distances;
     private HashMap<String,String> results;
+    private HashMap<String, String> mapToFillHomeNext;
     private DateFormat sdf;
     private Map<Date,String> dates;
 
@@ -141,6 +148,10 @@ public class MeteoclimaMainFragment extends Fragment implements
         locationTextView = (TextView) rootView.findViewById(R.id.location);
         locationTextView.setText(helper.getLastKnownLocation());
 
+        //hide homeNext until it's filled in
+        homeNext = (LinearLayout) rootView.findViewById(R.id.homeNext);
+        homeNext.setVisibility(View.GONE);
+
         return rootView;
     }
 
@@ -169,6 +180,8 @@ public class MeteoclimaMainFragment extends Fragment implements
                 setUpLocationClientIfNeeded();
                 if (!mLocationClient.isConnected()) {
                     mLocationClient.connect();
+                } else {
+                    updateUi();
                 }
             }
         }
@@ -204,19 +217,21 @@ public class MeteoclimaMainFragment extends Fragment implements
 
     @Override
     public void onLocationChanged(Location location) {
-        setUpLocationClientIfNeeded();
+        /*setUpLocationClientIfNeeded();
         if (!mLocationClient.isConnected()) {
             mLocationClient.connect();
-        }
+        }*/
         updateUi();
     }
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        /*mLocationClient.requestLocationUpdates(
+        mLocationClient.requestLocationUpdates(
                 REQUEST,
-                this);  // LocationListener*/
-        getFragmentManager().executePendingTransactions(); //to make sure isAdded returns the correct value
+                this);  // LocationListener
+        if (getFragmentManager() != null) { //run only if app is active
+            getFragmentManager().executePendingTransactions();
+        }//to make sure isAdded returns the correct value
         if (isAdded()) { //prevent running if the fragment is not still attached to the activity
             if (Helper.isGotForecasts()) {
                 updateUiFromStoredForecasts();
@@ -248,7 +263,7 @@ public class MeteoclimaMainFragment extends Fragment implements
     }
 
     public void updateForecastOnUi(HashMap<String,String> map) {
-        if (rootView != null) {
+        if (rootView != null && map.size() > 2) {
 
             //update image
             Resources res = getResources();
@@ -273,7 +288,9 @@ public class MeteoclimaMainFragment extends Fragment implements
 
             String[] forecastDescriptions = helper.getForecastDescriptions();
             String[] tagNames = helper.getTagNames();
-            GridView gridView = (GridView) rootView.findViewById(R.id.gridview);
+            String[] tagUnits = helper.getForecastUnits();
+            MyExpandableHeightGridView gridView = (MyExpandableHeightGridView) rootView.findViewById(R.id.gridview);
+            gridView.setExpanded(true);
 
             // create the grid item mapping
             String[] from = new String[] {"forecast_name", "value"};
@@ -285,13 +302,13 @@ public class MeteoclimaMainFragment extends Fragment implements
             //first add the wind separately
             HashMap<String, String> windToFill = new HashMap<String, String>();
             windToFill.put("forecast_name", "Wind speed/direction");
-            windToFill.put("value", map.get(Helper.TAG_WIND_BEAUFORT) + " Bf / " + map.get(Helper.TAG_WINDDIR_SYM));
+            windToFill.put("value", map.get(Helper.TAG_WIND_BEAUFORT) + " " + Helper.UNIT_BEAUFORT + " / " + map.get(Helper.TAG_WINDDIR_SYM));
             fillMaps.add(windToFill);
 
             for(int i = 0; i < forecastDescriptions.length; i++){
                 HashMap<String, String> mapToFill = new HashMap<String, String>();
                 mapToFill.put("forecast_name", forecastDescriptions[i]);
-                mapToFill.put("value", map.get(tagNames[i]));
+                mapToFill.put("value", map.get(tagNames[i]) + " " + tagUnits[i]);
                 fillMaps.add(mapToFill);
             }
 
@@ -299,10 +316,30 @@ public class MeteoclimaMainFragment extends Fragment implements
             MySimpleAdapter adapter = new MySimpleAdapter(getActivity(), fillMaps, R.layout.grid_item, from, to);
             gridView.setAdapter(adapter);
 
+            // fill in the homeNext layout
+            firstLine = (TextView) rootView.findViewById(R.id.homeNext_firstLine);
+            secondLine = (TextView) rootView.findViewById(R.id.homeNext_secondLine);
+            thirdLine = (TextView) rootView.findViewById(R.id.homeNext_thirdLine);
+            forthLine = (TextView) rootView.findViewById(R.id.homeNext_forthLine);
+            nextImageView = (ImageView) rootView.findViewById(R.id.homeNext_icon);
+
+            nextImageView.setImageResource(helper.returnDrawableId(Integer.parseInt(mapToFillHomeNext.get(Helper.TAG_WEATHER_IMAGE))));
+            firstLine.setText(mapToFillHomeNext.get("formattedDate"));
+            secondLine.setText(helper.formatTemperature(mapToFillHomeNext.get(Helper.TAG_TEMP)) + " " + helper.returnBasicWeatherDescription(Integer.parseInt(mapToFillHomeNext.get(Helper.TAG_WEATHER_IMAGE))));
+            thirdLine.setText(Html.fromHtml("<b>Wind:</b> " + mapToFillHomeNext.get(Helper.TAG_WIND_BEAUFORT) + " Bf / " + mapToFillHomeNext.get(Helper.TAG_WINDDIR_SYM) + " <b>Pressure:</b> " + mapToFillHomeNext.get(Helper.TAG_MSLP) + " " + Helper.UNIT_MSLP));
+            if (!mapToFillHomeNext.get(Helper.TAG_SNOW).equals("0.0")) {
+                forthLine.setText(Html.fromHtml("<b>HI:</b> " + mapToFillHomeNext.get(Helper.TAG_HEAT_INDEX) + Helper.UNIT_TEMP + " <b>Snow:</b> " + mapToFillHomeNext.get(Helper.TAG_RAIN) + " " +  Helper.UNIT_SNOW  + " <b>Humidity:</b> " + mapToFillHomeNext.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
+            } else if (!mapToFillHomeNext.get(Helper.TAG_RAIN).equals("0.0")) {
+                forthLine.setText(Html.fromHtml("<b>HI:</b> " + mapToFillHomeNext.get(Helper.TAG_HEAT_INDEX) + Helper.UNIT_TEMP + " <b>Rain:</b> " + mapToFillHomeNext.get(Helper.TAG_RAIN) + " " + Helper.UNIT_RAIN + " <b>Humidity:</b> " + mapToFillHomeNext.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
+            }  else {
+                forthLine.setText(Html.fromHtml("<b>HI:</b> " + mapToFillHomeNext.get(Helper.TAG_HEAT_INDEX) + Helper.UNIT_TEMP + " <b>Humidity:</b> " + mapToFillHomeNext.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
+            }
+            homeNext.setVisibility(View.VISIBLE);
+
             //show current lan/lon for beta testers
-            TextView debug = (TextView) rootView.findViewById(R.id.debug);
+            /*TextView debug = (TextView) rootView.findViewById(R.id.debug);
             debug.setText(Html.fromHtml("device lat: " + mLastLocation.getLatitude() + " lon: " + mLastLocation.getLongitude() +
-                    "<br>server lat: " + map.get(Helper.TAG_LAT) + " lon: " + map.get(Helper.TAG_LON)));
+                    "<br>server lat: " + map.get(Helper.TAG_LAT) + " lon: " + map.get(Helper.TAG_LON)));*/
         }
     }
 
@@ -451,8 +488,7 @@ public class MeteoclimaMainFragment extends Fragment implements
             String locationName = getString(R.string.waiting_for_location);
             if (!mLocationClient.isConnected()) {
                 mLocationClient.connect();
-            }
-            if (mLocationClient.getLastLocation() == null) {
+            } else if (mLocationClient.getLastLocation() == null) {
                 locationName = helper.getLastKnownLocation();
                 repeatGetLocationName(); //retry in 10 seconds
             } else {
@@ -464,9 +500,14 @@ public class MeteoclimaMainFragment extends Fragment implements
 
         @Override
         protected void onPostExecute(String locationName) {
-            if (!locationName.equals(getString(R.string.waiting_for_location))) {
-                locationTextView.setText(locationName);
-                getLocationNameIsRunning = false;
+            if (getFragmentManager() != null) { //run only if app is active
+                getFragmentManager().executePendingTransactions(); //to make sure isAdded returns the correct value
+                if (isAdded()) { //prevent onPostExecute to run if the fragment is not still attached to the activity
+                    if (!locationName.equals(getString(R.string.waiting_for_location))) {
+                        locationTextView.setText(locationName);
+                        getLocationNameIsRunning = false;
+                    }
+                }
             }
         }
     }
@@ -606,26 +647,50 @@ public class MeteoclimaMainFragment extends Fragment implements
                             List<Date> datesToCompare = new ArrayList<Date>(dates.keySet());
                             Date closest = helper.getNearestDate(datesToCompare, now);
 
+                            Boolean fillHomeNext = false;
+
                             //loop retrievedLocationsList to send the closest location forecast to updateForecastInUi method
                             for (int i = 0; i < retrievedLocationsList.size(); i++) {
+
+                                String dateStr = retrievedLocationsList.get(i).get(Helper.TAG_YEAR) + " " +
+                                        retrievedLocationsList.get(i).get(Helper.TAG_MONTH) + " " +
+                                        retrievedLocationsList.get(i).get(Helper.TAG_DAY) + " " +
+                                        retrievedLocationsList.get(i).get(Helper.TAG_HOUR);
+
+                                //use the next one to fill in the homeNext layout
+                                if (fillHomeNext) {
+                                    //parse date and convert it from UTC to local time
+                                    SimpleDateFormat readFormat = new SimpleDateFormat("yyyy MM dd HH");
+                                    readFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+                                    Date date = null;
+                                    try {
+                                        date = readFormat.parse(dateStr);
+                                    } catch (ParseException e) {
+                                        e.printStackTrace();
+                                    }
+                                    SimpleDateFormat printFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.ENGLISH);
+                                    printFormat.setTimeZone(TimeZone.getDefault());
+                                    String formattedDate = printFormat.format(date);
+                                    mapToFillHomeNext = retrievedLocationsList.get(i);
+                                    mapToFillHomeNext.put("formattedDate", formattedDate);
+                                    Log.d(Helper.LOG_TAG,"mapToFillHomeNext is filled");
+                                    fillHomeNext = false;
+                                }
+
                                 if (retrievedLocationsList.get(i).get(Helper.TAG_ID) == dates.get(closest) /*&&
                                         Float.parseFloat(retrievedLocationsList.get(i).get(Helper.TAG_DISTANCE)) == smallestDistance*/) {
                                     //store selected forecast's date to helper
-                                    helper.setCurrentForecastDateTime(
-                                            retrievedLocationsList.get(i).get(Helper.TAG_YEAR) + " " +
-                                                    retrievedLocationsList.get(i).get(Helper.TAG_MONTH) + " " +
-                                                    retrievedLocationsList.get(i).get(Helper.TAG_DAY) + " " +
-                                                    retrievedLocationsList.get(i).get(Helper.TAG_HOUR)
-                                    );
+                                    helper.setCurrentForecastDateTime(dateStr);
 
                                     //store selected forecast's location to helper
                                     Helper.setCurrentForecastLat(retrievedLocationsList.get(i).get(Helper.TAG_LAT));
                                     Helper.setCurrentForecastLon(retrievedLocationsList.get(i).get(Helper.TAG_LON));
 
-                                    return retrievedLocationsList.get(i);
+                                    fillHomeNext = true;
+
+                                    results = retrievedLocationsList.get(i);
                                 }
                             }
-
                         } else {
                             // no retrieved locations found
                             results.put("error", getString(R.string.sorry_no_forecast_available));
@@ -648,32 +713,29 @@ public class MeteoclimaMainFragment extends Fragment implements
             Log.d(Helper.LOG_TAG,"ConnectToServer onPostExecute");
             if (getFragmentManager() != null) { //run only if app is active
                 getFragmentManager().executePendingTransactions(); //to make sure isAdded returns the correct value
-                Log.d(Helper.LOG_TAG,"isAdded is: " + isAdded());
-                if (isAdded()) { //prevent onPostExecute to run if the fragment is not still attached to the activity
-                    if (result.containsKey("error")) {
-                        Toast.makeText(getActivity(), result.get("error"), Toast.LENGTH_LONG).show();
-                        ProgressBar progressSpinner = (ProgressBar) rootView.findViewById(R.id.marker_progress);
-                        progressSpinner.setVisibility(View.GONE);
-                        TextView errorMsg = (TextView) rootView.findViewById(R.id.waitingMessage);
-                        errorMsg.setText(result.get("error"));
-                        Button retryBtn = (Button) rootView.findViewById(R.id.button_retry);
-                        retryBtn.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                updateUi();
-                            }
-                        });
-                        retryBtn.setVisibility(View.VISIBLE);
-                    } else {
-                        updateForecastOnUi(result);
-                        spinner.setVisibility(View.GONE);
-                        ((MainActivity)getActivity()).showTabs();
-                    }
-                    connectToServerIsRunning = false;
-                }
             }
-
-
+            if (isAdded()) { //prevent onPostExecute to run if the fragment is not still attached to the activity
+                if (result.containsKey("error")) {
+                    Toast.makeText(getActivity(), result.get("error"), Toast.LENGTH_LONG).show();
+                    ProgressBar progressSpinner = (ProgressBar) rootView.findViewById(R.id.marker_progress);
+                    progressSpinner.setVisibility(View.GONE);
+                    TextView errorMsg = (TextView) rootView.findViewById(R.id.waitingMessage);
+                    errorMsg.setText(result.get("error"));
+                    Button retryBtn = (Button) rootView.findViewById(R.id.button_retry);
+                    retryBtn.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            updateUi();
+                        }
+                    });
+                    retryBtn.setVisibility(View.VISIBLE);
+                } else {
+                    updateForecastOnUi(result);
+                    spinner.setVisibility(View.GONE);
+                    ((MainActivity)getActivity()).showTabs();
+                }
+                connectToServerIsRunning = false;
+            }
         }
 
     }
