@@ -2,7 +2,7 @@
 
 (English - Αγγλικά)
 
-This is an open source wheather app for android based on gridded and in situ data provided from the Atmosphere and Climate Dynamics Group of the Harokopio University of Athens (ACDG/HUA).
+This is an open source weather app for android based on gridded and in situ data provided from the Atmosphere and Climate Dynamics Group of the Harokopio University of Athens (ACDG/HUA).
 
 All the files except the php files inside the folder named "server-side" are part of the gradle project (Java) created using the Android Studio.
 
