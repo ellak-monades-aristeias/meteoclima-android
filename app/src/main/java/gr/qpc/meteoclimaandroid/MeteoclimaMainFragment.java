@@ -40,6 +40,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -72,7 +73,7 @@ public class MeteoclimaMainFragment extends Fragment implements
     private LinearLayout spinner;
     private Helper helper;
     private ArrayList<HashMap<String, String>> retrievedLocationsList;
-    private ArrayList<Float> distances;
+    private ArrayList<Double> distances;
     private HashMap<String,String> results;
     private HashMap<String, String> mapToFillHomeNext;
     private DateFormat sdf;
@@ -438,7 +439,25 @@ public class MeteoclimaMainFragment extends Fragment implements
 
             //loop retrievedLocationsList to send the closest location forecast to updateForecastInUi method
             for (int i = 0; i < retrievedLocationsList.size(); i++) {
-                if (retrievedLocationsList.get(i).get(Helper.TAG_ID) == dates.get(closest)) {
+
+                //parse current date to compare it to nearest date
+                Calendar cal = GregorianCalendar.getInstance(TimeZone.getTimeZone("UTC"));
+                String target = retrievedLocationsList.get(i).get(Helper.TAG_YEAR) + " " +
+                        retrievedLocationsList.get(i).get(Helper.TAG_MONTH) + " " +
+                        retrievedLocationsList.get(i).get(Helper.TAG_DAY) + " " +
+                        retrievedLocationsList.get(i).get(Helper.TAG_HOUR) + " UTC";
+                try {
+                    cal.setTime(sdf.parse(target));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                Date currentDate = cal.getTime();
+
+                double smallestDistance = helper.getSmallestDistance();
+                double currentDistance = Double.parseDouble(retrievedLocationsList.get(i).get(Helper.TAG_DISTANCE));
+                boolean isSmallestDistance = Math.abs(currentDistance - smallestDistance) < 0.1;
+
+                if (currentDate.compareTo(closest) == 0 && isSmallestDistance) {
                     //store selected forecast's date to helper
                     helper.setCurrentForecastDateTime(
                             retrievedLocationsList.get(i).get(Helper.TAG_YEAR) + " " +
@@ -527,7 +546,7 @@ public class MeteoclimaMainFragment extends Fragment implements
             Log.d(Helper.LOG_TAG, "Meteoclima connecting to server...");
 
             //initialize distances ArrayList
-            distances = new ArrayList<Float>();
+            distances = new ArrayList<Double>();
 
             //check for internet connection
             ConnectionChecker cc = new ConnectionChecker(ctx);
@@ -592,7 +611,7 @@ public class MeteoclimaMainFragment extends Fragment implements
                                 String heatIndex = c.getString(Helper.TAG_HEAT_INDEX);
 
                                 //add distance in an ArrayList to find the smallest (nearest) later
-                                distances.add(Float.parseFloat(distance));
+                                distances.add(Double.parseDouble(distance));
 
                                 //parse date
                                 Calendar cal = GregorianCalendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -637,9 +656,9 @@ public class MeteoclimaMainFragment extends Fragment implements
                                 retrievedLocationsList.add(map);
                             }
 
-                            //find the smallest (nearest) distance
-                            /*Float smallestDistance = Collections.min(distances);
-                            Log.d(Helper.LOG_TAG,"smallestDistance: " + smallestDistance);*/
+                            //find the smallest distance and store it to helper (to keep only the forecasts for the nearest grid points)
+                            Double smallestDistance = Collections.min(distances);
+                            helper.setSmallestDistance(smallestDistance);
 
                             //find the closest date
                             Date now = new Date();
@@ -677,19 +696,36 @@ public class MeteoclimaMainFragment extends Fragment implements
                                     fillHomeNext = false;
                                 }
 
-                                if (retrievedLocationsList.get(i).get(Helper.TAG_ID) == dates.get(closest) /*&&
-                                        Float.parseFloat(retrievedLocationsList.get(i).get(Helper.TAG_DISTANCE)) == smallestDistance*/) {
-                                    //store selected forecast's date to helper
-                                    helper.setCurrentForecastDateTime(dateStr);
-
-                                    //store selected forecast's location to helper
-                                    Helper.setCurrentForecastLat(retrievedLocationsList.get(i).get(Helper.TAG_LAT));
-                                    Helper.setCurrentForecastLon(retrievedLocationsList.get(i).get(Helper.TAG_LON));
-
-                                    fillHomeNext = true;
-
-                                    results = retrievedLocationsList.get(i);
+                                //parse current date to compare it to nearest date
+                                Calendar cal = GregorianCalendar.getInstance(TimeZone.getTimeZone("UTC"));
+                                String target = retrievedLocationsList.get(i).get(Helper.TAG_YEAR) + " " +
+                                        retrievedLocationsList.get(i).get(Helper.TAG_MONTH) + " " +
+                                        retrievedLocationsList.get(i).get(Helper.TAG_DAY) + " " +
+                                        retrievedLocationsList.get(i).get(Helper.TAG_HOUR) + " UTC";
+                                try {
+                                    cal.setTime(sdf.parse(target));
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
                                 }
+                                Date currentDate = cal.getTime();
+
+
+                                double currentDistance = Double.parseDouble(retrievedLocationsList.get(i).get(Helper.TAG_DISTANCE));
+                                boolean isSmallestDistance = Math.abs(currentDistance - smallestDistance) < 0.1;
+                                Log.d(Helper.LOG_TAG, "isSmallestDistance = " + isSmallestDistance + " " + Math.abs(currentDistance - smallestDistance));
+
+                                if (currentDate.compareTo(closest) == 0 && isSmallestDistance) {
+                                        //store selected forecast's date to helper
+                                        helper.setCurrentForecastDateTime(dateStr);
+
+                                        //store selected forecast's location to helper
+                                        Helper.setCurrentForecastLat(retrievedLocationsList.get(i).get(Helper.TAG_LAT));
+                                        Helper.setCurrentForecastLon(retrievedLocationsList.get(i).get(Helper.TAG_LON));
+
+                                        fillHomeNext = true;
+
+                                        results = retrievedLocationsList.get(i);
+                                    }
                             }
                         } else {
                             // no retrieved locations found

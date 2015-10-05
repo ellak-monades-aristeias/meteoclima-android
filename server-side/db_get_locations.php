@@ -24,8 +24,10 @@ if (isset($_GET["lat"]) && isset($_GET["lat"])) {
 	  * cos( radians( lon ) - radians($lon) ) + sin( radians($lat) ) 
 	  * sin( radians( lat ) ) ) ) AS distance
 	FROM meteoclima
+	/*WHERE DATE(CONCAT(`yy`,'-',LPAD(`mm`,2,'00'),'-',LPAD(`dd`,2,'00'))) BETWEEN DATE_SUB(NOW(), INTERVAL 1 DAY) AND NOW()*/
 	WHERE DATE(CONCAT(`yy`,'-',LPAD(`mm`,2,'00'),'-',LPAD(`dd`,2,'00'))) BETWEEN DATE_SUB(NOW(), INTERVAL 1 DAY) AND DATE_ADD(NOW(), INTERVAL 4 DAY)
-	ORDER BY distance,yy,mm,dd,hh LIMIT 24;") or die(mysql_error());
+	/*WHERE DATE(CONCAT(`yy`,'-',LPAD(`mm`,2,'00'),'-',LPAD(`dd`,2,'00'))) BETWEEN '2015-9-14' AND DATE_ADD('2015-9-14', INTERVAL 2 DAY)*/
+	ORDER BY distance,yy,mm,dd,hh LIMIT 40;") or die(mysql_error());
  
     // check for empty result
 	if (mysql_num_rows($result) > 0) {

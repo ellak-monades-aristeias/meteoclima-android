@@ -146,6 +146,7 @@ public class MeteoclimaDailyFragment extends Fragment {
                     String windDirSym = c.getString(Helper.TAG_WINDDIR_SYM);
                     String relhum = c.getString(Helper.TAG_RELHUM);
                     String heatIndex = c.getString(Helper.TAG_HEAT_INDEX);
+                    String distance = c.getString(Helper.TAG_DISTANCE);
 
                     //parse date and convert it from UTC to local time
                     String dateStr = yy + " " + mm + " " + dd + " " + hh;
@@ -168,7 +169,11 @@ public class MeteoclimaDailyFragment extends Fragment {
                     cal3.setTime(currentForecastDate); //current forecast's cal
                     cal3.add(Calendar.DATE, 1); //current forecast's cal plus one day
 
-                    if (cal1.get(Calendar.DAY_OF_YEAR) >= cal3.get(Calendar.DAY_OF_YEAR)) {
+                    double smallestDistance = helper.getSmallestDistance();
+                    double currentDistance = Double.parseDouble(distance);
+                    boolean isSmallestDistance = Math.abs(currentDistance - smallestDistance) < 0.1;
+
+                    if ((cal1.get(Calendar.DAY_OF_YEAR) >= cal3.get(Calendar.DAY_OF_YEAR)) && isSmallestDistance) {
                         //put everything in hashmaps and then in an ArrayList to populate the listView
                         HashMap<String,String> map = new HashMap<String,String>();
                         map.put("id", id);

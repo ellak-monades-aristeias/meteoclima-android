@@ -33,6 +33,7 @@ public class Helper {
     private static String currentForecastDateTime;
     private static String currentForecastLat;
     private static String currentForecastLon;
+    private static double smallestDistance;
 
     private static final String PREF_NAME = "MeteoclimaPreferences";
     private static final String LAST_KNOWN_LOCATION = "LAST_KNOWN_LOCATION";
@@ -137,6 +138,14 @@ public class Helper {
         Helper.gotForecasts = gotForecasts;
     }
 
+    public static double getSmallestDistance() {
+        return smallestDistance;
+    }
+
+    public static void setSmallestDistance(double smallestDistance) {
+        Helper.smallestDistance = smallestDistance;
+    }
+
     public static boolean isBlockWidgetService() {
         return blockWidgetService;
     }
@@ -174,27 +183,29 @@ public class Helper {
         switch (num) {
             case 1:  basicWeatherDescription = "Sunny";
                 break;
-            case 2:  basicWeatherDescription = "Mostly Sunny";
+            case 2:  basicWeatherDescription = "Partly Cloudy";
                 break;
             case 3:  basicWeatherDescription = "Mostly Cloudy";
                 break;
-            case 4:  basicWeatherDescription = "Cloudy";
+            case 4:  basicWeatherDescription = "Clear";
                 break;
-            case 5:  basicWeatherDescription = "Mostly Cloudy - Rain";
+            case 5:  basicWeatherDescription = "Partly Cloudy";
                 break;
-            case 6:  basicWeatherDescription = "Cloudy - Rain";
+            case 6:  basicWeatherDescription = "Mostly Cloudy";
                 break;
-            case 7:  basicWeatherDescription = "Mostly Cloudy - Storm";
+            case 7:  basicWeatherDescription = "Cloudy";
                 break;
-            case 8:  basicWeatherDescription = "Cloudy - Storm";
+            case 8:  basicWeatherDescription = "Drizzle";
                 break;
-            case 9:  basicWeatherDescription = "Mostly Cloudy - Snow";
+            case 9:  basicWeatherDescription = "Rain";
                 break;
-            case 10: basicWeatherDescription = "Cloudy - Snow";
+            case 10: basicWeatherDescription = "Heavy Rain";
                 break;
-            case 11: basicWeatherDescription = "Mostly Cloudy - A lot of Snow";
+            case 11: basicWeatherDescription = "Storm";
                 break;
-            case 12: basicWeatherDescription = "Cloudy - A lot of Snow";
+            case 12: basicWeatherDescription = "Light Snow";
+                break;
+            case 13: basicWeatherDescription = "Snow";
                 break;
             default: basicWeatherDescription = "Not Available";
                 break;
@@ -211,23 +222,25 @@ public class Helper {
                 break;
             case 3:  drawableId = R.drawable.partly_cloudy;
                 break;
-            case 4:  drawableId = R.drawable.cloudy;
+            case 4:  drawableId = R.drawable.moon;
                 break;
-            case 5:  drawableId = R.drawable.m_c_rain;
+            case 5:  drawableId = R.drawable.m_cloudy_night;
                 break;
-            case 6:  drawableId = R.drawable.rainy;
+            case 6:  drawableId = R.drawable.p_c_night;
                 break;
-            case 7:  drawableId = R.drawable.chance_storm;
+            case 7:  drawableId = R.drawable.cloudy;
                 break;
-            case 8:  drawableId = R.drawable.t_storm_rain;
+            case 8:  drawableId = R.drawable.fair_drizzle;
                 break;
-            case 9:  drawableId = R.drawable.m_c_snow;
+            case 9:  drawableId = R.drawable.drizzle;
                 break;
-            case 10: drawableId = R.drawable.snow_shower;
+            case 10: drawableId = R.drawable.showers;
                 break;
-            case 11: drawableId = R.drawable.p_c_snow;
+            case 11: drawableId = R.drawable.t_storm_rain;
                 break;
-            case 12: drawableId = R.drawable.snow;
+            case 12: drawableId = R.drawable.m_c_snow;
+                break;
+            case 13: drawableId = R.drawable.snow_shower;
                 break;
             default: drawableId = R.drawable.na;
                 break;
