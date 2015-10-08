@@ -31,9 +31,6 @@ public class Helper {
     private static boolean gotForecasts = false;
     private static boolean blockWidgetService = false;
     private static String currentForecastDateTime;
-    private static String currentForecastLat;
-    private static String currentForecastLon;
-    private static double smallestDistance;
 
     private static final String PREF_NAME = "MeteoclimaPreferences";
     private static final String LAST_KNOWN_LOCATION = "LAST_KNOWN_LOCATION";
@@ -42,40 +39,42 @@ public class Helper {
     //Application Tag for Logger
     public static final String LOG_TAG = "Meteoclima";
 
+    //OpenWeatherMap API Key
+    public static String API_KEY = "2631c63cc233d2b187e4b0bd102b5ce4";
+
     // url to get the location list
-    public static String url_server = "http://195.251.31.119/~android/db_get_locations.php";
+    public static String url_server = "http://api.openweathermap.org/data/2.5/forecast";
 
     // JSON Node names
     public static final String TAG_SUCCESS = "success";
-    public static final String TAG_LOCATIONS = "locations";
-    public static final String TAG_ID = "id";
+    public static final String TAG_LOCATIONS = "list";
+    public static final String TAG_MAIN = "main";
+    public static final String TAG_ID = "dt";
+    public static final String TAG_DATE_HOUR = "dt_txt";
     public static final String TAG_YEAR = "yy";
     public static final String TAG_MONTH = "mm";
     public static final String TAG_DAY = "dd";
     public static final String TAG_HOUR = "hh";
     public static final String TAG_LAT = "lat";
     public static final String TAG_LON = "lon";
-    public static final String TAG_MSLP = "mslp";
+    public static final String TAG_MSLP = "pressure";
     public static final String TAG_TEMP = "temp";
     public static final String TAG_RAIN = "rain";
     public static final String TAG_SNOW = "snow";
-    public static final String TAG_WINDSP = "windsp";
-    public static final String TAG_WINDDIR = "winddir";
-    public static final String TAG_WINDDIR_SYM = "windDirSym";
-    public static final String TAG_RELHUM = "relhum";
-    public static final String TAG_WEATHER_IMAGE = "weatherImage";
-    public static final String TAG_WIND_BEAUFORT = "windBeaufort";
-    public static final String TAG_DISTANCE = "distance";
-    public static final String TAG_LAND_OR_SEA = "landOrSea";
-    public static final String TAG_HEAT_INDEX = "heatIndex";
+    public static final String TAG_WIND = "wind";
+    public static final String TAG_WINDSP = "speed";
+    public static final String TAG_WINDDIR = "deg";
+    public static final String TAG_RELHUM = "humidity";
+    public static final String TAG_WEATHER = "weather";
+    public static final String TAG_WEATHER_DESCRIPTION = "description";
+    public static final String TAG_WEATHER_IMAGE = "icon";
 
     //units of measurement
     public static final String UNIT_MSLP = "hPa";
-    public static final String UNIT_TEMP = "℃";
     public static final String UNIT_RAIN = "mm";
     public static final String UNIT_SNOW = "mm";
     public static final String UNIT_RELHUM = "%";
-    public static final String UNIT_BEAUFORT = "Bf";
+    public static final String UNIT_WIND_SPEED = "m/s";
 
     public Helper(Context context){
         ctx = context;
@@ -138,14 +137,6 @@ public class Helper {
         Helper.gotForecasts = gotForecasts;
     }
 
-    public static double getSmallestDistance() {
-        return smallestDistance;
-    }
-
-    public static void setSmallestDistance(double smallestDistance) {
-        Helper.smallestDistance = smallestDistance;
-    }
-
     public static boolean isBlockWidgetService() {
         return blockWidgetService;
     }
@@ -162,107 +153,85 @@ public class Helper {
         Helper.currentForecastDateTime = currentForecastDateTime;
     }
 
-    public static String getCurrentForecastLat() {
-        return Helper.currentForecastLat;
-    }
-
-    public static void setCurrentForecastLat(String currentForecastLat) {
-        Helper.currentForecastLat = currentForecastLat;
-    }
-
-    public static String getCurrentForecastLon() {
-        return Helper.currentForecastLon;
-    }
-
-    public static void setCurrentForecastLon(String currentForecastLon) {
-        Helper.currentForecastLon = currentForecastLon;
-    }
-
-    public String returnBasicWeatherDescription(int num) {
-        String basicWeatherDescription;
-        switch (num) {
-            case 1:  basicWeatherDescription = "Sunny";
-                break;
-            case 2:  basicWeatherDescription = "Partly Cloudy";
-                break;
-            case 3:  basicWeatherDescription = "Mostly Cloudy";
-                break;
-            case 4:  basicWeatherDescription = "Clear";
-                break;
-            case 5:  basicWeatherDescription = "Partly Cloudy";
-                break;
-            case 6:  basicWeatherDescription = "Mostly Cloudy";
-                break;
-            case 7:  basicWeatherDescription = "Cloudy";
-                break;
-            case 8:  basicWeatherDescription = "Drizzle";
-                break;
-            case 9:  basicWeatherDescription = "Rain";
-                break;
-            case 10: basicWeatherDescription = "Heavy Rain";
-                break;
-            case 11: basicWeatherDescription = "Storm";
-                break;
-            case 12: basicWeatherDescription = "Light Snow";
-                break;
-            case 13: basicWeatherDescription = "Snow";
-                break;
-            default: basicWeatherDescription = "Not Available";
-                break;
-        }
-        return basicWeatherDescription;
-    }
-
-    public int returnDrawableId(int num) {
-        int drawableId;
-        switch (num) {
-            case 1:  drawableId = R.drawable.sunny;
-                break;
-            case 2:  drawableId = R.drawable.m_cloudy;
-                break;
-            case 3:  drawableId = R.drawable.partly_cloudy;
-                break;
-            case 4:  drawableId = R.drawable.moon;
-                break;
-            case 5:  drawableId = R.drawable.m_cloudy_night;
-                break;
-            case 6:  drawableId = R.drawable.p_c_night;
-                break;
-            case 7:  drawableId = R.drawable.cloudy;
-                break;
-            case 8:  drawableId = R.drawable.fair_drizzle;
-                break;
-            case 9:  drawableId = R.drawable.drizzle;
-                break;
-            case 10: drawableId = R.drawable.showers;
-                break;
-            case 11: drawableId = R.drawable.t_storm_rain;
-                break;
-            case 12: drawableId = R.drawable.m_c_snow;
-                break;
-            case 13: drawableId = R.drawable.snow_shower;
-                break;
-            default: drawableId = R.drawable.na;
-                break;
-        }
-        return drawableId;
-    }
-
     public String[] getForecastDescriptions() {
-        return new String[]{"Heat Index (HI)","Pressure","Rain","Snow","Humidity"};
+        return new String[]{"Pressure","Rain","Snow","Humidity"};
     }
 
     public String[] getForecastUnits() {
-        return new String[]{UNIT_TEMP,UNIT_MSLP,UNIT_RAIN,UNIT_SNOW,UNIT_RELHUM};
+        return new String[]{UNIT_MSLP,UNIT_RAIN,UNIT_SNOW,UNIT_RELHUM};
     }
 
     public String[] getTagNames() {
-        return new String[]{"heatIndex","mslp","rain","snow","relhum"};
+        return new String[]{TAG_MSLP,TAG_RAIN,TAG_SNOW,TAG_RELHUM};
     }
 
     public String formatTemperature(String temp) {
         Double tempDouble = Double.parseDouble(temp);
         return String.format("%.1f", tempDouble) + "℃";
+    }
+
+    public String capitalize(String givenString) {
+        String[] arr = givenString.split(" ");
+        StringBuffer sb = new StringBuffer();
+
+        for (int i = 0; i < arr.length; i++) {
+            sb.append(Character.toUpperCase(arr[i].charAt(0)))
+                    .append(arr[i].substring(1)).append(" ");
+        }
+        return sb.toString().trim();
+    }
+
+    public String windDegreesToDirection(String deg) {
+        float degrees = Float.parseFloat(deg);
+        if (degrees >= 348.75000 && degrees <= 365 || degrees >= 0.0 && degrees <= 11.24000) {
+            return "N";
+        }
+        if (degrees >= 11.25000 && degrees <= 33.74000) {
+            return "NNE";
+        }
+        if (degrees >= 33.75000 && degrees <= 56.24000) {
+            return "NE";
+        }
+        if (degrees >= 56.25000 && degrees <= 78.74000) {
+            return "ENE";
+        }
+        if (degrees >= 78.75000 && degrees <= 101.24000) {
+            return "E";
+        }
+        if (degrees >= 101.25000 && degrees <= 123.74000) {
+            return "ESE";
+        }
+        if (degrees >= 123.75000 && degrees <= 146.24000) {
+            return "SE";
+        }
+        if (degrees >= 146.25000 && degrees <= 168.74000) {
+            return "SSE";
+        }
+        if (degrees >= 168.75000 && degrees <= 191.24000) {
+            return "S";
+        }
+        if (degrees >= 191.25000 && degrees <= 213.74000) {
+            return "SSW";
+        }
+        if (degrees >= 213.75000 && degrees <= 236.24000) {
+            return "SW";
+        }
+        if (degrees >= 236.25000 && degrees <= 258.74000) {
+            return "WSW";
+        }
+        if (degrees >= 258.75000 && degrees <= 281.24000) {
+            return "W";
+        }
+        if (degrees >= 281.25000 && degrees <= 303.74000) {
+            return "WNW";
+        }
+        if (degrees >= 303.75000 && degrees <= 326.24000) {
+            return "NW";
+        }
+        if (degrees >= 326.25000 && degrees <= 348.74000) {
+            return "NNW";
+        }
+        return "N/A";
     }
 
     public static Date getNearestDate(List<Date> dates, Date currentDate) {

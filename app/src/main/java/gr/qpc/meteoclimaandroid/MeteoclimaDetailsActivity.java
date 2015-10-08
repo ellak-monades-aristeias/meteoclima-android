@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -61,34 +62,53 @@ public class MeteoclimaDetailsActivity extends AppCompatActivity {
             // looping through all locations
             try {
                 for (int i = 0; i < retrievedForecasts.length(); i++) {
-                    JSONObject c = retrievedForecasts.getJSONObject(i);
+                    JSONObject list = retrievedForecasts.getJSONObject(i);
 
-                    if (c.has("error")) {
-                        System.out.println(c.getString("error"));
+                    if (list.has("error")) {
+                        System.out.println(list.getString("error"));
                     }
 
-                    if (c.getString(Helper.TAG_ID).equals(selected_id)) {
+                    if (list.getString(Helper.TAG_ID).equals(selected_id)) {
 
                         // Storing each json item in variable
-                        String id = c.getString(Helper.TAG_ID);
-                        String yy = c.getString(Helper.TAG_YEAR);
-                        String mm = c.getString(Helper.TAG_MONTH);
-                        String dd = c.getString(Helper.TAG_DAY);
-                        String hh = c.getString(Helper.TAG_HOUR);
-                        String lat = c.getString(Helper.TAG_LAT);
-                        String lon = c.getString(Helper.TAG_LON);
-                        String mslp = c.getString(Helper.TAG_MSLP);
-                        String temp = c.getString(Helper.TAG_TEMP);
-                        String rain = c.getString(Helper.TAG_RAIN);
-                        String snow = c.getString(Helper.TAG_SNOW);
-                        String windsp = c.getString(Helper.TAG_WINDSP);
-                        String winddir = c.getString(Helper.TAG_WINDDIR);
-                        String windDirSym = c.getString(Helper.TAG_WINDDIR_SYM);
-                        String relhum = c.getString(Helper.TAG_RELHUM);
-                        String weatherImage = c.getString(Helper.TAG_WEATHER_IMAGE);
-                        String windBeaufort = c.getString(Helper.TAG_WIND_BEAUFORT);
-                        String distance = c.getString(Helper.TAG_DISTANCE);
-                        String heatIndex = c.getString(Helper.TAG_HEAT_INDEX);
+                        String id = list.getString(Helper.TAG_ID);
+                        String date_hour = list.getString(Helper.TAG_DATE_HOUR);
+
+                        //split date for backwards compatibility
+                        String[] date_parts = date_hour.split("-");
+                        String yy = date_parts[0];
+                        String mm = date_parts[1];
+                        String[] date_parts2 = date_parts[2].split(" ");
+                        String dd =  date_parts2[0];
+                        String[] date_parts3 = date_parts2[1].split(":");
+                        String hh = date_parts3[0];
+                        Log.d(Helper.LOG_TAG, "yy: " + yy + " mm: " + mm + " dd: " + dd + " hh " + hh);
+
+                        //get main inside list
+                        JSONObject main = list.getJSONObject(Helper.TAG_MAIN);
+                        String temp = main.getString(Helper.TAG_TEMP);
+
+                        String mslp = main.getString(Helper.TAG_MSLP);
+                        String rain = "0.0";
+                        if (main.has(Helper.TAG_RAIN)) {
+                            rain = main.getString(Helper.TAG_RAIN);
+                        }
+                        String snow = "0.0";
+                        if (main.has(Helper.TAG_SNOW)) {
+                            snow = main.getString(Helper.TAG_SNOW);
+                        }
+                        String relhum = main.getString(Helper.TAG_RELHUM);
+
+                        //gat wind main inside list
+                        JSONObject wind = list.getJSONObject(Helper.TAG_WIND);
+                        String windsp = wind.getString(Helper.TAG_WINDSP);
+                        String winddir = wind.getString(Helper.TAG_WINDDIR);
+
+                        JSONArray weather_jarray = list.getJSONArray(Helper.TAG_WEATHER);
+
+                        JSONObject weather = weather_jarray.getJSONObject(0);
+                        String weatherImage = weather.getString(Helper.TAG_WEATHER_IMAGE);
+                        String weatherDescription = weather.getString(Helper.TAG_WEATHER_DESCRIPTION);
 
                         // adding each child node to HashMap key => value
                         map.put(Helper.TAG_ID, id);
@@ -96,20 +116,15 @@ public class MeteoclimaDetailsActivity extends AppCompatActivity {
                         map.put(Helper.TAG_MONTH, mm);
                         map.put(Helper.TAG_DAY, dd);
                         map.put(Helper.TAG_HOUR, hh);
-                        map.put(Helper.TAG_LAT, lat);
-                        map.put(Helper.TAG_LON, lon);
                         map.put(Helper.TAG_MSLP, mslp);
                         map.put(Helper.TAG_TEMP, temp);
                         map.put(Helper.TAG_RAIN, rain);
                         map.put(Helper.TAG_SNOW, snow);
                         map.put(Helper.TAG_WINDSP, windsp);
                         map.put(Helper.TAG_WINDDIR, winddir);
-                        map.put(Helper.TAG_WINDDIR_SYM, windDirSym);
                         map.put(Helper.TAG_RELHUM, relhum);
                         map.put(Helper.TAG_WEATHER_IMAGE, weatherImage);
-                        map.put(Helper.TAG_WIND_BEAUFORT, windBeaufort);
-                        map.put(Helper.TAG_DISTANCE, distance);
-                        map.put(Helper.TAG_HEAT_INDEX, heatIndex);
+                        map.put(Helper.TAG_WEATHER_DESCRIPTION, weatherDescription);
 
                         //parse date and convert it from UTC to local time
                         String dateStr = yy + " " + mm + " " + dd + " " + hh;
@@ -140,7 +155,8 @@ public class MeteoclimaDetailsActivity extends AppCompatActivity {
 
         imageView = (ImageView) findViewById(R.id.imageViewDetails);
         Resources res = getResources();
-        Drawable drawable = res.getDrawable(helper.returnDrawableId(Integer.parseInt(map.get(Helper.TAG_WEATHER_IMAGE))));
+        int resourceId = res.getIdentifier("open" + map.get(Helper.TAG_WEATHER_IMAGE), "drawable", this.getPackageName());
+        Drawable drawable = res.getDrawable(resourceId);
         imageView.setImageDrawable(drawable);
 
         //update temperature
@@ -149,7 +165,7 @@ public class MeteoclimaDetailsActivity extends AppCompatActivity {
         temperatureTextView.setGravity(Gravity.CENTER_VERTICAL);
 
         TextView basicWeatherDescriptionTextView = (TextView) findViewById(R.id.basicWeatherDetails);
-        basicWeatherDescriptionTextView.setText(helper.returnBasicWeatherDescription(Integer.parseInt(map.get(Helper.TAG_WEATHER_IMAGE))));
+        basicWeatherDescriptionTextView.setText(helper.capitalize(map.get(Helper.TAG_WEATHER_DESCRIPTION)));
         basicWeatherDescriptionTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
 
         String[] forecastDescriptions = helper.getForecastDescriptions();
@@ -165,10 +181,14 @@ public class MeteoclimaDetailsActivity extends AppCompatActivity {
         List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
 
         //first add the wind separately
-        HashMap<String, String> windToFill = new HashMap<String, String>();
-        windToFill.put("forecast_name", "Wind speed/direction");
-        windToFill.put("value", map.get(Helper.TAG_WIND_BEAUFORT) + " " + Helper.UNIT_BEAUFORT + " / " + map.get(Helper.TAG_WINDDIR_SYM));
-        fillMaps.add(windToFill);
+        HashMap<String, String> windSpeedToFill = new HashMap<String, String>();
+        windSpeedToFill.put("forecast_name", "Wind speed");
+        windSpeedToFill.put("value", map.get(Helper.TAG_WINDSP) + " " + Helper.UNIT_WIND_SPEED);
+        fillMaps.add(windSpeedToFill);
+        HashMap<String, String> windDirToFill = new HashMap<String, String>();
+        windDirToFill.put("forecast_name", "Wind direction");
+        windDirToFill.put("value", helper.windDegreesToDirection(map.get(Helper.TAG_WINDDIR)));
+        fillMaps.add(windDirToFill);
 
         for(int i = 0; i < forecastDescriptions.length; i++){
             HashMap<String, String> mapToFill = new HashMap<String, String>();

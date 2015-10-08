@@ -3,7 +3,6 @@ package gr.qpc.meteoclimaandroid;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -122,31 +121,45 @@ public class MeteoclimaDailyFragment extends Fragment {
             // looping through all locations
             try {
                 for (int i = 0; i < retrievedForecasts.length(); i++) {
-                    JSONObject c = retrievedForecasts.getJSONObject(i);
-
-                    if (c.has("error")) {
-                        Log.d(Helper.LOG_TAG, c.getString("error"));
-                    }
+                    JSONObject jlist = retrievedForecasts.getJSONObject(i);
 
                     // Storing each json item in variable
-                    String id = c.getString(Helper.TAG_ID);
-                    String lat = c.getString(Helper.TAG_LAT);
-                    String lon = c.getString(Helper.TAG_LON);
-                    String yy = c.getString(Helper.TAG_YEAR);
-                    String mm = c.getString(Helper.TAG_MONTH);
-                    String dd = c.getString(Helper.TAG_DAY);
-                    String hh = c.getString(Helper.TAG_HOUR);
-                    String temp = c.getString(Helper.TAG_TEMP);
-                    String weatherImage = c.getString(Helper.TAG_WEATHER_IMAGE);
-                    String mslp = c.getString(Helper.TAG_MSLP);
-                    String rain = c.getString(Helper.TAG_RAIN);
-                    String snow = c.getString(Helper.TAG_SNOW);
-                    String windBeaufort = c.getString(Helper.TAG_WIND_BEAUFORT);
-                    String winddir = c.getString(Helper.TAG_WINDDIR);
-                    String windDirSym = c.getString(Helper.TAG_WINDDIR_SYM);
-                    String relhum = c.getString(Helper.TAG_RELHUM);
-                    String heatIndex = c.getString(Helper.TAG_HEAT_INDEX);
-                    String distance = c.getString(Helper.TAG_DISTANCE);
+                    String id = jlist.getString(Helper.TAG_ID);
+                    String date_hour = jlist.getString(Helper.TAG_DATE_HOUR);
+
+                    //split date for backwards compatibility
+                    String[] date_parts = date_hour.split("-");
+                    String yy = date_parts[0];
+                    String mm = date_parts[1];
+                    String[] date_parts2 = date_parts[2].split(" ");
+                    String dd =  date_parts2[0];
+                    String[] date_parts3 = date_parts2[1].split(":");
+                    String hh = date_parts3[0];
+
+                    //get main inside list
+                    JSONObject main = jlist.getJSONObject(Helper.TAG_MAIN);
+                    String temp = main.getString(Helper.TAG_TEMP);
+                    String mslp = main.getString(Helper.TAG_MSLP);
+                    String rain = "0.0";
+                    if (main.has(Helper.TAG_RAIN)) {
+                        rain = main.getString(Helper.TAG_RAIN);
+                    }
+                    String snow = "0.0";
+                    if (main.has(Helper.TAG_SNOW)) {
+                        snow = main.getString(Helper.TAG_SNOW);
+                    }
+                    String relhum = main.getString(Helper.TAG_RELHUM);
+
+                    //get wind main inside list
+                    JSONObject wind = jlist.getJSONObject(Helper.TAG_WIND);
+                    String windsp = wind.getString(Helper.TAG_WINDSP);
+                    String winddir = wind.getString(Helper.TAG_WINDDIR);
+
+                    JSONArray weather_jarray = jlist.getJSONArray(Helper.TAG_WEATHER);
+
+                    JSONObject weather = weather_jarray.getJSONObject(0);
+                    String weatherImage = weather.getString(Helper.TAG_WEATHER_IMAGE);
+                    String weatherDescription = weather.getString(Helper.TAG_WEATHER_DESCRIPTION);
 
                     //parse date and convert it from UTC to local time
                     String dateStr = yy + " " + mm + " " + dd + " " + hh;
@@ -169,28 +182,24 @@ public class MeteoclimaDailyFragment extends Fragment {
                     cal3.setTime(currentForecastDate); //current forecast's cal
                     cal3.add(Calendar.DATE, 1); //current forecast's cal plus one day
 
-                    double smallestDistance = helper.getSmallestDistance();
-                    double currentDistance = Double.parseDouble(distance);
-                    boolean isSmallestDistance = Math.abs(currentDistance - smallestDistance) < 0.1;
 
-                    if ((cal1.get(Calendar.DAY_OF_YEAR) >= cal3.get(Calendar.DAY_OF_YEAR)) && isSmallestDistance) {
+                    if (cal1.get(Calendar.DAY_OF_YEAR) >= cal3.get(Calendar.DAY_OF_YEAR)) {
                         //put everything in hashmaps and then in an ArrayList to populate the listView
                         HashMap<String,String> map = new HashMap<String,String>();
                         map.put("id", id);
                         map.put("formattedDate", formattedDate);
                         map.put(Helper.TAG_TEMP, temp);
+                        map.put(Helper.TAG_WEATHER_DESCRIPTION,weatherDescription);
                         map.put(Helper.TAG_WEATHER_IMAGE, weatherImage);
                         map.put(Helper.TAG_MSLP, mslp);
                         map.put(Helper.TAG_RAIN, rain);
                         map.put(Helper.TAG_SNOW, snow);
-                        map.put(Helper.TAG_WIND_BEAUFORT, windBeaufort);
+                        map.put(Helper.TAG_WINDSP, windsp);
                         map.put(Helper.TAG_WINDDIR, winddir);
-                        map.put(Helper.TAG_WINDDIR_SYM, windDirSym);
                         map.put(Helper.TAG_RELHUM, relhum);
-                        map.put(Helper.TAG_HEAT_INDEX, heatIndex);
                         list.add(map);
                         //add point to chart
-                        addDataToChart(printFormat.format(date), temp, windBeaufort);
+                        addDataToChart(printFormat.format(date), temp, windsp);
                     }
 
 

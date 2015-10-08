@@ -8,6 +8,7 @@
         android:minWidth="250dp"
         android:minHeight="60dp"
         android:gravity="center_vertical"
+        android:background="@drawable/appwidget_bg"
         android:id="@+id/linearLayout1">
         <ImageView
             android:layout_width="60dp"
@@ -46,16 +47,6 @@
                 android:textColor="#2D4057"
                 android:id="@+id/widgetBasicWeather"
                 android:layout_marginLeft="10dp" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/app_name"
-                android:textSize="8dp"
-                android:typeface="sans"
-                android:textStyle="bold"
-                android:textColor="#ffffff"
-                android:layout_marginLeft="10dp"
-                android:id="@+id/widgetAppName" />
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

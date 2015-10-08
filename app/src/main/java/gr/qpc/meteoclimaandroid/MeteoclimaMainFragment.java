@@ -40,7 +40,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -268,12 +267,13 @@ public class MeteoclimaMainFragment extends Fragment implements
 
             //update image
             Resources res = getResources();
-            Drawable drawable = res.getDrawable(helper.returnDrawableId(Integer.parseInt(map.get(Helper.TAG_WEATHER_IMAGE))));
+            int resourceId = res.getIdentifier("open" + map.get(Helper.TAG_WEATHER_IMAGE), "drawable", getActivity().getApplicationContext().getPackageName());
+            Drawable drawable = res.getDrawable(resourceId);
             imageView.setImageDrawable(drawable);
 
             //update description
             TextView basicWeatherDescriptionTextView = (TextView) rootView.findViewById(R.id.basicWeather);
-            basicWeatherDescriptionTextView.setText(helper.returnBasicWeatherDescription(Integer.parseInt(map.get(Helper.TAG_WEATHER_IMAGE))));
+            basicWeatherDescriptionTextView.setText(helper.capitalize(map.get(Helper.TAG_WEATHER_DESCRIPTION)));
             basicWeatherDescriptionTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
 
             //update temperature
@@ -301,10 +301,14 @@ public class MeteoclimaMainFragment extends Fragment implements
             List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
 
             //first add the wind separately
-            HashMap<String, String> windToFill = new HashMap<String, String>();
-            windToFill.put("forecast_name", "Wind speed/direction");
-            windToFill.put("value", map.get(Helper.TAG_WIND_BEAUFORT) + " " + Helper.UNIT_BEAUFORT + " / " + map.get(Helper.TAG_WINDDIR_SYM));
-            fillMaps.add(windToFill);
+            HashMap<String, String> windSpeedToFill = new HashMap<String, String>();
+            windSpeedToFill.put("forecast_name", "Wind speed");
+            windSpeedToFill.put("value", map.get(Helper.TAG_WINDSP) + " " + Helper.UNIT_WIND_SPEED);
+            fillMaps.add(windSpeedToFill);
+            HashMap<String, String> windDirToFill = new HashMap<String, String>();
+            windDirToFill.put("forecast_name", "Wind direction");
+            windDirToFill.put("value", helper.windDegreesToDirection(map.get(Helper.TAG_WINDDIR)));
+            fillMaps.add(windDirToFill);
 
             for(int i = 0; i < forecastDescriptions.length; i++){
                 HashMap<String, String> mapToFill = new HashMap<String, String>();
@@ -324,16 +328,16 @@ public class MeteoclimaMainFragment extends Fragment implements
             forthLine = (TextView) rootView.findViewById(R.id.homeNext_forthLine);
             nextImageView = (ImageView) rootView.findViewById(R.id.homeNext_icon);
 
-            nextImageView.setImageResource(helper.returnDrawableId(Integer.parseInt(mapToFillHomeNext.get(Helper.TAG_WEATHER_IMAGE))));
+            nextImageView.setImageResource(getResources().getIdentifier("open" + map.get(Helper.TAG_WEATHER_IMAGE), "drawable", getActivity().getApplicationContext().getPackageName()));
             firstLine.setText(mapToFillHomeNext.get("formattedDate"));
-            secondLine.setText(helper.formatTemperature(mapToFillHomeNext.get(Helper.TAG_TEMP)) + " " + helper.returnBasicWeatherDescription(Integer.parseInt(mapToFillHomeNext.get(Helper.TAG_WEATHER_IMAGE))));
-            thirdLine.setText(Html.fromHtml("<b>Wind:</b> " + mapToFillHomeNext.get(Helper.TAG_WIND_BEAUFORT) + " Bf / " + mapToFillHomeNext.get(Helper.TAG_WINDDIR_SYM) + " <b>Pressure:</b> " + mapToFillHomeNext.get(Helper.TAG_MSLP) + " " + Helper.UNIT_MSLP));
+            secondLine.setText(helper.formatTemperature(mapToFillHomeNext.get(Helper.TAG_TEMP)) + " " + helper.capitalize(mapToFillHomeNext.get(Helper.TAG_WEATHER_DESCRIPTION)));
+            thirdLine.setText(Html.fromHtml("<b>Wind:</b> " + mapToFillHomeNext.get(Helper.TAG_WINDSP) + " " + Helper.UNIT_WIND_SPEED + " " + helper.windDegreesToDirection(mapToFillHomeNext.get(Helper.TAG_WINDDIR)) + " <b>Pressure:</b> " + mapToFillHomeNext.get(Helper.TAG_MSLP) + " " + Helper.UNIT_MSLP));
             if (!mapToFillHomeNext.get(Helper.TAG_SNOW).equals("0.0")) {
-                forthLine.setText(Html.fromHtml("<b>HI:</b> " + mapToFillHomeNext.get(Helper.TAG_HEAT_INDEX) + Helper.UNIT_TEMP + " <b>Snow:</b> " + mapToFillHomeNext.get(Helper.TAG_RAIN) + " " +  Helper.UNIT_SNOW  + " <b>Humidity:</b> " + mapToFillHomeNext.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
+                forthLine.setText(Html.fromHtml("<b>Snow:</b> " + mapToFillHomeNext.get(Helper.TAG_RAIN) + " " +  Helper.UNIT_SNOW  + " <b>Humidity:</b> " + mapToFillHomeNext.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
             } else if (!mapToFillHomeNext.get(Helper.TAG_RAIN).equals("0.0")) {
-                forthLine.setText(Html.fromHtml("<b>HI:</b> " + mapToFillHomeNext.get(Helper.TAG_HEAT_INDEX) + Helper.UNIT_TEMP + " <b>Rain:</b> " + mapToFillHomeNext.get(Helper.TAG_RAIN) + " " + Helper.UNIT_RAIN + " <b>Humidity:</b> " + mapToFillHomeNext.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
+                forthLine.setText(Html.fromHtml("<b>Rain:</b> " + mapToFillHomeNext.get(Helper.TAG_RAIN) + " " + Helper.UNIT_RAIN + " <b>Humidity:</b> " + mapToFillHomeNext.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
             }  else {
-                forthLine.setText(Html.fromHtml("<b>HI:</b> " + mapToFillHomeNext.get(Helper.TAG_HEAT_INDEX) + Helper.UNIT_TEMP + " <b>Humidity:</b> " + mapToFillHomeNext.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
+                forthLine.setText(Html.fromHtml("<b>Humidity:</b> " + mapToFillHomeNext.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
             }
             homeNext.setVisibility(View.VISIBLE);
 
@@ -364,29 +368,46 @@ public class MeteoclimaMainFragment extends Fragment implements
         // looping through all locations
         try {
             for (int i = 0; i < retrievedLocations.length(); i++) {
-                JSONObject c = retrievedLocations.getJSONObject(i);
+                JSONObject list = retrievedLocations.getJSONObject(i);
 
                 // Storing each json item in variable
-                String id = c.getString(Helper.TAG_ID);
-                String yy = c.getString(Helper.TAG_YEAR);
-                String mm = c.getString(Helper.TAG_MONTH);
-                String dd = c.getString(Helper.TAG_DAY);
-                String hh = c.getString(Helper.TAG_HOUR);
-                String lat = c.getString(Helper.TAG_LAT);
-                String lon = c.getString(Helper.TAG_LON);
-                String mslp = c.getString(Helper.TAG_MSLP);
-                String temp = c.getString(Helper.TAG_TEMP);
-                String rain = c.getString(Helper.TAG_RAIN);
-                String snow = c.getString(Helper.TAG_SNOW);
-                String windsp = c.getString(Helper.TAG_WINDSP);
-                String winddir = c.getString(Helper.TAG_WINDDIR);
-                String windDirSym = c.getString(Helper.TAG_WINDDIR_SYM);
-                String relhum = c.getString(Helper.TAG_RELHUM);
-                String weatherImage = c.getString(Helper.TAG_WEATHER_IMAGE);
-                String windBeaufort = c.getString(Helper.TAG_WIND_BEAUFORT);
-                String landOrSea = c.getString(Helper.TAG_LAND_OR_SEA);
-                String distance = c.getString(Helper.TAG_DISTANCE);
-                String heatIndex = c.getString(Helper.TAG_HEAT_INDEX);
+                String id = list.getString(Helper.TAG_ID);
+                String date_hour = list.getString(Helper.TAG_DATE_HOUR);
+
+                //split date for backwards compatibility
+                String[] date_parts = date_hour.split("-");
+                String yy = date_parts[0];
+                String mm = date_parts[1];
+                String[] date_parts2 = date_parts[2].split(" ");
+                String dd =  date_parts2[0];
+                String[] date_parts3 = date_parts2[1].split(":");
+                String hh = date_parts3[0];
+                //Log.d(Helper.LOG_TAG,"yy: " + yy + " mm: " + mm + " dd: " + dd + " hh " + hh);
+
+                //get main inside list
+                JSONObject main = list.getJSONObject(Helper.TAG_MAIN);
+                String temp = main.getString(Helper.TAG_TEMP);
+                String mslp = main.getString(Helper.TAG_MSLP);
+                String rain = "0.0";
+                if (main.has(Helper.TAG_RAIN)) {
+                    rain = main.getString(Helper.TAG_RAIN);
+                }
+                String snow = "0.0";
+                if (main.has(Helper.TAG_SNOW)) {
+                    snow = main.getString(Helper.TAG_SNOW);
+                }
+                String relhum = main.getString(Helper.TAG_RELHUM);
+
+                //gat wind main inside list
+                JSONObject wind = list.getJSONObject(Helper.TAG_WIND);
+                String windsp = wind.getString(Helper.TAG_WINDSP);
+                String winddir = wind.getString(Helper.TAG_WINDDIR);
+
+                JSONArray weather_jarray = list.getJSONArray(Helper.TAG_WEATHER);
+
+                JSONObject weather = weather_jarray.getJSONObject(0);
+                String weatherImage = weather.getString(Helper.TAG_WEATHER_IMAGE);
+                String weatherDescription = weather.getString(Helper.TAG_WEATHER_DESCRIPTION);
 
                 //parse date
                 Calendar cal = GregorianCalendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -411,21 +432,15 @@ public class MeteoclimaMainFragment extends Fragment implements
                 map.put(Helper.TAG_MONTH, mm);
                 map.put(Helper.TAG_DAY, dd);
                 map.put(Helper.TAG_HOUR, hh);
-                map.put(Helper.TAG_LAT, lat);
-                map.put(Helper.TAG_LON, lon);
                 map.put(Helper.TAG_MSLP, mslp);
                 map.put(Helper.TAG_TEMP, temp);
                 map.put(Helper.TAG_RAIN, rain);
                 map.put(Helper.TAG_SNOW, snow);
                 map.put(Helper.TAG_WINDSP, windsp);
                 map.put(Helper.TAG_WINDDIR, winddir);
-                map.put(Helper.TAG_WINDDIR_SYM, windDirSym);
                 map.put(Helper.TAG_RELHUM, relhum);
                 map.put(Helper.TAG_WEATHER_IMAGE, weatherImage);
-                map.put(Helper.TAG_WIND_BEAUFORT, windBeaufort);
-                map.put(Helper.TAG_LAND_OR_SEA, landOrSea);
-                map.put(Helper.TAG_DISTANCE, distance);
-                map.put(Helper.TAG_HEAT_INDEX, heatIndex);
+                map.put(Helper.TAG_WEATHER_DESCRIPTION, weatherDescription);
 
                 // adding HashList to ArrayList
                 retrievedLocationsList.add(map);
@@ -453,17 +468,14 @@ public class MeteoclimaMainFragment extends Fragment implements
                 }
                 Date currentDate = cal.getTime();
 
-                double smallestDistance = helper.getSmallestDistance();
-                double currentDistance = Double.parseDouble(retrievedLocationsList.get(i).get(Helper.TAG_DISTANCE));
-                boolean isSmallestDistance = Math.abs(currentDistance - smallestDistance) < 0.1;
 
-                if (currentDate.compareTo(closest) == 0 && isSmallestDistance) {
+                if (currentDate.compareTo(closest) == 0) {
                     //store selected forecast's date to helper
                     helper.setCurrentForecastDateTime(
                             retrievedLocationsList.get(i).get(Helper.TAG_YEAR) + " " +
-                            retrievedLocationsList.get(i).get(Helper.TAG_MONTH) + " " +
-                            retrievedLocationsList.get(i).get(Helper.TAG_DAY) + " " +
-                            retrievedLocationsList.get(i).get(Helper.TAG_HOUR)
+                                    retrievedLocationsList.get(i).get(Helper.TAG_MONTH) + " " +
+                                    retrievedLocationsList.get(i).get(Helper.TAG_DAY) + " " +
+                                    retrievedLocationsList.get(i).get(Helper.TAG_HOUR)
                     );
                     updateForecastOnUi(retrievedLocationsList.get(i));
                     spinner.setVisibility(View.GONE);
@@ -545,9 +557,6 @@ public class MeteoclimaMainFragment extends Fragment implements
 
             Log.d(Helper.LOG_TAG, "Meteoclima connecting to server...");
 
-            //initialize distances ArrayList
-            distances = new ArrayList<Double>();
-
             //check for internet connection
             ConnectionChecker cc = new ConnectionChecker(ctx);
 
@@ -567,15 +576,15 @@ public class MeteoclimaMainFragment extends Fragment implements
                     List<NameValuePair> params = new ArrayList<NameValuePair>();
                     params.add(new BasicNameValuePair("lat", latitude));
                     params.add(new BasicNameValuePair("lon", longitude));
+                    params.add(new BasicNameValuePair("units", "metric"));
+                    params.add(new BasicNameValuePair("APPID", Helper.API_KEY));
 
                     // getting JSON string from URL
                     JSONObject json = jParser.makeHttpRequest(Helper.url_server, "GET", params);
 
                     try {
-                        // Checking for SUCCESS TAG
-                        int success = json.getInt(Helper.TAG_SUCCESS);
-
-                        if (success == 1) {
+                        // Checking if not empty
+                        if (!json.isNull("list")) {
                             // locations found
                             // Getting Array of retrieved locations
                             retrievedLocations = json.getJSONArray(Helper.TAG_LOCATIONS);
@@ -586,32 +595,49 @@ public class MeteoclimaMainFragment extends Fragment implements
 
                             // looping through all locations
                             for (int i = 0; i < retrievedLocations.length(); i++) {
-                                JSONObject c = retrievedLocations.getJSONObject(i);
+                                JSONObject list = retrievedLocations.getJSONObject(i);
 
                                 // Storing each json item in variable
-                                String id = c.getString(Helper.TAG_ID);
-                                String yy = c.getString(Helper.TAG_YEAR);
-                                String mm = c.getString(Helper.TAG_MONTH);
-                                String dd = c.getString(Helper.TAG_DAY);
-                                String hh = c.getString(Helper.TAG_HOUR);
-                                String lat = c.getString(Helper.TAG_LAT);
-                                String lon = c.getString(Helper.TAG_LON);
-                                String mslp = c.getString(Helper.TAG_MSLP);
-                                String temp = c.getString(Helper.TAG_TEMP);
-                                String rain = c.getString(Helper.TAG_RAIN);
-                                String snow = c.getString(Helper.TAG_SNOW);
-                                String windsp = c.getString(Helper.TAG_WINDSP);
-                                String winddir = c.getString(Helper.TAG_WINDDIR);
-                                String windDirSym = c.getString(Helper.TAG_WINDDIR_SYM);
-                                String relhum = c.getString(Helper.TAG_RELHUM);
-                                String weatherImage = c.getString(Helper.TAG_WEATHER_IMAGE);
-                                String windBeaufort = c.getString(Helper.TAG_WIND_BEAUFORT);
-                                String landOrSea = c.getString(Helper.TAG_LAND_OR_SEA);
-                                String distance = c.getString(Helper.TAG_DISTANCE);
-                                String heatIndex = c.getString(Helper.TAG_HEAT_INDEX);
+                                String id = list.getString(Helper.TAG_ID);
+                                String date_hour = list.getString(Helper.TAG_DATE_HOUR);
 
-                                //add distance in an ArrayList to find the smallest (nearest) later
-                                distances.add(Double.parseDouble(distance));
+                                //split date for backwards compatibility
+                                String[] date_parts = date_hour.split("-");
+                                String yy = date_parts[0];
+                                String mm = date_parts[1];
+                                String[] date_parts2 = date_parts[2].split(" ");
+                                String dd =  date_parts2[0];
+                                String[] date_parts3 = date_parts2[1].split(":");
+                                String hh = date_parts3[0];
+                                //Log.d(Helper.LOG_TAG,"yy: " + yy + " mm: " + mm + " dd: " + dd + " hh " + hh);
+
+                                //get main inside list
+                                JSONObject main = list.getJSONObject(Helper.TAG_MAIN);
+                                String temp = main.getString(Helper.TAG_TEMP);
+                                String heatIndex = main.getString(Helper.TAG_TEMP);
+                                String mslp = main.getString(Helper.TAG_MSLP);
+                                String rain = "0.0";
+                                if (main.has(Helper.TAG_RAIN)) {
+                                    rain = main.getString(Helper.TAG_RAIN);
+                                }
+                                String snow = "0.0";
+                                if (main.has(Helper.TAG_SNOW)) {
+                                    snow = main.getString(Helper.TAG_SNOW);
+                                }
+                                String relhum = main.getString(Helper.TAG_RELHUM);
+
+                                //gat wind main inside list
+                                JSONObject wind = list.getJSONObject(Helper.TAG_WIND);
+                                String windsp = wind.getString(Helper.TAG_WINDSP);
+                                String winddir = wind.getString(Helper.TAG_WINDDIR);
+
+                                JSONArray weather_jarray = list.getJSONArray(Helper.TAG_WEATHER);
+
+                                JSONObject weather = weather_jarray.getJSONObject(0);
+                                String weatherImage = weather.getString(Helper.TAG_WEATHER_IMAGE);
+                                String weatherDescription = weather.getString(Helper.TAG_WEATHER_DESCRIPTION);
+
+                                //Log.d(Helper.LOG_TAG,"temp: " + temp + " heatIndex: " + heatIndex + " mslp: " + mslp + " relhum " + relhum);
 
                                 //parse date
                                 Calendar cal = GregorianCalendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -636,29 +662,19 @@ public class MeteoclimaMainFragment extends Fragment implements
                                 map.put(Helper.TAG_MONTH,mm);
                                 map.put(Helper.TAG_DAY,dd);
                                 map.put(Helper.TAG_HOUR,hh);
-                                map.put(Helper.TAG_LAT,lat);
-                                map.put(Helper.TAG_LON,lon);
                                 map.put(Helper.TAG_MSLP,mslp);
                                 map.put(Helper.TAG_TEMP,temp);
                                 map.put(Helper.TAG_RAIN,rain);
                                 map.put(Helper.TAG_SNOW,snow);
                                 map.put(Helper.TAG_WINDSP,windsp);
                                 map.put(Helper.TAG_WINDDIR,winddir);
-                                map.put(Helper.TAG_WINDDIR_SYM,windDirSym);
                                 map.put(Helper.TAG_RELHUM,relhum);
                                 map.put(Helper.TAG_WEATHER_IMAGE,weatherImage);
-                                map.put(Helper.TAG_WIND_BEAUFORT,windBeaufort);
-                                map.put(Helper.TAG_LAND_OR_SEA, landOrSea);
-                                map.put(Helper.TAG_DISTANCE, distance);
-                                map.put(Helper.TAG_HEAT_INDEX, heatIndex);
+                                map.put(Helper.TAG_WEATHER_DESCRIPTION, weatherDescription);
 
                                 // adding HashList to ArrayList
                                 retrievedLocationsList.add(map);
                             }
-
-                            //find the smallest distance and store it to helper (to keep only the forecasts for the nearest grid points)
-                            Double smallestDistance = Collections.min(distances);
-                            helper.setSmallestDistance(smallestDistance);
 
                             //find the closest date
                             Date now = new Date();
@@ -709,18 +725,9 @@ public class MeteoclimaMainFragment extends Fragment implements
                                 }
                                 Date currentDate = cal.getTime();
 
-
-                                double currentDistance = Double.parseDouble(retrievedLocationsList.get(i).get(Helper.TAG_DISTANCE));
-                                boolean isSmallestDistance = Math.abs(currentDistance - smallestDistance) < 0.1;
-                                Log.d(Helper.LOG_TAG, "isSmallestDistance = " + isSmallestDistance + " " + Math.abs(currentDistance - smallestDistance));
-
-                                if (currentDate.compareTo(closest) == 0 && isSmallestDistance) {
+                                if (currentDate.compareTo(closest) == 0) {
                                         //store selected forecast's date to helper
                                         helper.setCurrentForecastDateTime(dateStr);
-
-                                        //store selected forecast's location to helper
-                                        Helper.setCurrentForecastLat(retrievedLocationsList.get(i).get(Helper.TAG_LAT));
-                                        Helper.setCurrentForecastLon(retrievedLocationsList.get(i).get(Helper.TAG_LON));
 
                                         fillHomeNext = true;
 

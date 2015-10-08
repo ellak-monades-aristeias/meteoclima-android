@@ -46,16 +46,16 @@ public class MyArrayAdapter extends ArrayAdapter {
         if (item.get("id") != null) {
             ids_list.put(position, item.get("id"));
 
-            imageView.setImageResource(helper.returnDrawableId(Integer.parseInt(item.get(Helper.TAG_WEATHER_IMAGE))));
+            imageView.setImageResource(context.getResources().getIdentifier("open" + item.get(Helper.TAG_WEATHER_IMAGE), "drawable", context.getPackageName()));
             firstLine.setText(item.get("formattedDate"));
-            secondLine.setText(helper.formatTemperature(item.get(Helper.TAG_TEMP)) + " " + helper.returnBasicWeatherDescription(Integer.parseInt(item.get(Helper.TAG_WEATHER_IMAGE))));
-            thirdLine.setText(Html.fromHtml("<b>Wind:</b> " + item.get(Helper.TAG_WIND_BEAUFORT) + " Bf / " + item.get(Helper.TAG_WINDDIR_SYM) + " <b>Pressure:</b> " + item.get(Helper.TAG_MSLP) + " " + Helper.UNIT_MSLP));
+            secondLine.setText(helper.formatTemperature(item.get(Helper.TAG_TEMP)) + " " + helper.capitalize(item.get(Helper.TAG_WEATHER_DESCRIPTION)));
+            thirdLine.setText(Html.fromHtml("<b>Wind:</b> " + item.get(Helper.TAG_WINDSP) + " " + Helper.UNIT_WIND_SPEED + " " + helper.windDegreesToDirection(item.get(Helper.TAG_WINDDIR)) + " <b>Pressure:</b> " + item.get(Helper.TAG_MSLP) + " " + Helper.UNIT_MSLP));
             if (!item.get(Helper.TAG_SNOW).equals("0.0")) {
-                forthLine.setText(Html.fromHtml("<b>HI:</b> " + item.get(Helper.TAG_HEAT_INDEX) + Helper.UNIT_TEMP + " <b>Snow:</b> " + item.get(Helper.TAG_RAIN) + " " +  Helper.UNIT_SNOW  + " <b>Humidity:</b> " + item.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
+                forthLine.setText(Html.fromHtml("<b>Snow:</b> " + item.get(Helper.TAG_RAIN) + " " +  Helper.UNIT_SNOW  + " <b>Humidity:</b> " + item.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
             } else if (!item.get(Helper.TAG_RAIN).equals("0.0")) {
-                forthLine.setText(Html.fromHtml("<b>HI:</b> " + item.get(Helper.TAG_HEAT_INDEX) + Helper.UNIT_TEMP + " <b>Rain:</b> " + item.get(Helper.TAG_RAIN) + " " + Helper.UNIT_RAIN + " <b>Humidity:</b> " + item.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
+                forthLine.setText(Html.fromHtml("<b>Rain:</b> " + item.get(Helper.TAG_RAIN) + " " + Helper.UNIT_RAIN + " <b>Humidity:</b> " + item.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
             }  else {
-                forthLine.setText(Html.fromHtml("<b>HI:</b> " + item.get(Helper.TAG_HEAT_INDEX) + Helper.UNIT_TEMP + " <b>Humidity:</b> " + item.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
+                forthLine.setText(Html.fromHtml("<b>Humidity:</b> " + item.get(Helper.TAG_RELHUM) + " " + Helper.UNIT_RELHUM));
             }
         }
 

@@ -149,6 +149,8 @@ public class MeteoclimaWidgetService extends Service implements
             List<NameValuePair> params = new ArrayList<NameValuePair>();
             params.add(new BasicNameValuePair("lat", String.valueOf(mLastLocation.getLatitude())));
             params.add(new BasicNameValuePair("lon", String.valueOf(mLastLocation.getLongitude())));
+            params.add(new BasicNameValuePair("units", "metric"));
+            params.add(new BasicNameValuePair("APPID", Helper.API_KEY));
 
             // Creating JSON Parser object
             JSONParser jParser = new JSONParser();
@@ -172,28 +174,37 @@ public class MeteoclimaWidgetService extends Service implements
             JSONArray retrievedLocations = null;
 
             try {
-                // Checking for SUCCESS TAG
-                int success = json.getInt(Helper.TAG_SUCCESS);
-
-                if (success == 1) {
+                if (!json.isNull("list")) {
                     // locations found
                     // Getting Array of retrieved locations
                     retrievedLocations = json.getJSONArray(Helper.TAG_LOCATIONS);
 
                     // looping through all locations
                     for (int i = 0; i < retrievedLocations.length(); i++) {
-                        JSONObject c = retrievedLocations.getJSONObject(i);
+                        JSONObject list = retrievedLocations.getJSONObject(i);
 
                         // Storing each json item in variable
-                        String id = c.getString(Helper.TAG_ID);
-                        String yy = c.getString(Helper.TAG_YEAR);
-                        String mm = c.getString(Helper.TAG_MONTH);
-                        String dd = c.getString(Helper.TAG_DAY);
-                        String hh = c.getString(Helper.TAG_HOUR);
-                        String lat = c.getString(Helper.TAG_LAT);
-                        String lon = c.getString(Helper.TAG_LON);
-                        String temp = c.getString(Helper.TAG_TEMP);
-                        String weatherImage = c.getString(Helper.TAG_WEATHER_IMAGE);
+                        String id = list.getString(Helper.TAG_ID);
+                        String date_hour = list.getString(Helper.TAG_DATE_HOUR);
+
+                        //split date for backwards compatibility
+                        String[] date_parts = date_hour.split("-");
+                        String yy = date_parts[0];
+                        String mm = date_parts[1];
+                        String[] date_parts2 = date_parts[2].split(" ");
+                        String dd =  date_parts2[0];
+                        String[] date_parts3 = date_parts2[1].split(":");
+                        String hh = date_parts3[0];
+
+                        // Storing each json item in variable
+                        //get main inside list
+                        JSONObject main = list.getJSONObject(Helper.TAG_MAIN);
+                        String temp = main.getString(Helper.TAG_TEMP);
+                        JSONArray weather_jarray = list.getJSONArray(Helper.TAG_WEATHER);
+
+                        JSONObject weather = weather_jarray.getJSONObject(0);
+                        String weatherImage = weather.getString(Helper.TAG_WEATHER_IMAGE);
+                        String weatherDescription = weather.getString(Helper.TAG_WEATHER_DESCRIPTION);
 
                         //parse date
                         Calendar cal = GregorianCalendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -213,15 +224,14 @@ public class MeteoclimaWidgetService extends Service implements
                         HashMap<String, String> map = new HashMap<String, String>();
 
                         // adding each child node to HashMap key => value
-                        map.put(Helper.TAG_ID,id);
+                        map.put(Helper.TAG_ID, id);
                         map.put(Helper.TAG_YEAR,yy);
                         map.put(Helper.TAG_MONTH, mm);
                         map.put(Helper.TAG_DAY,dd);appWidgetManager.updateAppWidget(widget_id, views);
                         map.put(Helper.TAG_HOUR, hh);
-                        map.put(Helper.TAG_LAT,lat);
-                        map.put(Helper.TAG_LON,lon);
                         map.put(Helper.TAG_TEMP,temp);
                         map.put(Helper.TAG_WEATHER_IMAGE,weatherImage);
+                        map.put(Helper.TAG_WEATHER_DESCRIPTION, weatherDescription);
 
                         // adding HashList to ArrayList
                         retrievedLocationsList.add(map);
@@ -252,8 +262,8 @@ public class MeteoclimaWidgetService extends Service implements
                             views.setTextViewText(R.id.widgetDateTime,date);
                             //add temperature to location name
                             views.setTextViewText(R.id.appwidget_text, locationName + " " + helper.formatTemperature(retrievedLocationsList.get(i).get(Helper.TAG_TEMP)));
-                            views.setImageViewResource(R.id.widgetImageView, helper.returnDrawableId(Integer.parseInt(retrievedLocationsList.get(i).get(Helper.TAG_WEATHER_IMAGE))));
-                            views.setTextViewText(R.id.widgetBasicWeather, helper.returnBasicWeatherDescription(Integer.parseInt(retrievedLocationsList.get(i).get(Helper.TAG_WEATHER_IMAGE))));
+                            views.setImageViewResource(R.id.widgetImageView, getResources().getIdentifier("open" + retrievedLocationsList.get(i).get(Helper.TAG_WEATHER_IMAGE), "drawable", getApplicationContext().getPackageName()));
+                            views.setTextViewText(R.id.widgetBasicWeather, helper.capitalize(retrievedLocationsList.get(i).get(Helper.TAG_WEATHER_DESCRIPTION)));
                         }
                     }
 

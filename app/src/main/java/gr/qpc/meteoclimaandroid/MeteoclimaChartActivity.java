@@ -69,7 +69,7 @@ public class MeteoclimaChartActivity extends AppCompatActivity {
         DisplayMetrics metrics = getResources().getDisplayMetrics();
 
         tempSeries = new TimeSeries("Temperature (℃)");
-        windSeries = new TimeSeries("Wind (Bf)");
+        windSeries = new TimeSeries("Wind (m/s)");
 
         //parse date from hour of day
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.ENGLISH);
