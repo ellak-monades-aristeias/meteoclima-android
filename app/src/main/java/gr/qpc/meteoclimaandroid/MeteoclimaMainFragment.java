@@ -72,7 +72,6 @@ public class MeteoclimaMainFragment extends Fragment implements
     private LinearLayout spinner;
     private Helper helper;
     private ArrayList<HashMap<String, String>> retrievedLocationsList;
-    private ArrayList<Double> distances;
     private HashMap<String,String> results;
     private HashMap<String, String> mapToFillHomeNext;
     private DateFormat sdf;
@@ -328,7 +327,7 @@ public class MeteoclimaMainFragment extends Fragment implements
             forthLine = (TextView) rootView.findViewById(R.id.homeNext_forthLine);
             nextImageView = (ImageView) rootView.findViewById(R.id.homeNext_icon);
 
-            nextImageView.setImageResource(getResources().getIdentifier("open" + map.get(Helper.TAG_WEATHER_IMAGE), "drawable", getActivity().getApplicationContext().getPackageName()));
+            nextImageView.setImageResource(getResources().getIdentifier("open" + mapToFillHomeNext.get(Helper.TAG_WEATHER_IMAGE), "drawable", getActivity().getApplicationContext().getPackageName()));
             firstLine.setText(mapToFillHomeNext.get("formattedDate"));
             secondLine.setText(helper.formatTemperature(mapToFillHomeNext.get(Helper.TAG_TEMP)) + " " + helper.capitalize(mapToFillHomeNext.get(Helper.TAG_WEATHER_DESCRIPTION)));
             thirdLine.setText(Html.fromHtml("<b>Wind:</b> " + mapToFillHomeNext.get(Helper.TAG_WINDSP) + " " + Helper.UNIT_WIND_SPEED + " " + helper.windDegreesToDirection(mapToFillHomeNext.get(Helper.TAG_WINDDIR)) + " <b>Pressure:</b> " + mapToFillHomeNext.get(Helper.TAG_MSLP) + " " + Helper.UNIT_MSLP));
@@ -637,7 +636,7 @@ public class MeteoclimaMainFragment extends Fragment implements
                                 String weatherImage = weather.getString(Helper.TAG_WEATHER_IMAGE);
                                 String weatherDescription = weather.getString(Helper.TAG_WEATHER_DESCRIPTION);
 
-                                //Log.d(Helper.LOG_TAG,"temp: " + temp + " heatIndex: " + heatIndex + " mslp: " + mslp + " relhum " + relhum);
+                                //Log.d(Helper.LOG_TAG, "description: " + weatherDescription + " icon: " + weatherImage);
 
                                 //parse date
                                 Calendar cal = GregorianCalendar.getInstance(TimeZone.getTimeZone("UTC"));

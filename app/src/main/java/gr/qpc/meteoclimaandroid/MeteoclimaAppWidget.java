@@ -84,7 +84,7 @@ public class MeteoclimaAppWidget extends AppWidgetProvider {
         intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
         PendingIntent pendIntent = PendingIntent.getActivity(context, 0, intent, 0);
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.meteoclima_app_widget);
-        views.setOnClickPendingIntent(R.id.widgetBaseLayout, pendIntent);
+        views.setOnClickPendingIntent(R.id.linearLayout1, pendIntent);
         appWidgetManager.updateAppWidget(appWidgetId, views);
 
     }
