@@ -54,11 +54,7 @@ public class MeteoclimaChartActivity extends AppCompatActivity {
         LinearLayout layout = (LinearLayout) findViewById(R.id.chart);
         if (mChart == null) {
             initChart();
-            if (chartHoursPoints.size() > 8) {
-                mChart = ChartFactory.getTimeChartView(this, mDataset, mRenderer, "dd/MM/yy");
-            } else {
-                mChart = ChartFactory.getTimeChartView(this, mDataset, mRenderer, "dd/MM HH");
-            }
+            mChart = ChartFactory.getTimeChartView(this, mDataset, mRenderer, "dd/MM HH:mm");
             layout.addView(mChart);
         } else {
             mChart.repaint();
@@ -110,10 +106,10 @@ public class MeteoclimaChartActivity extends AppCompatActivity {
         mRenderer = new XYMultipleSeriesRenderer();
         mRenderer.addSeriesRenderer(tempRenderer);
         mRenderer.addSeriesRenderer(windRenderer);
-        mRenderer.setYAxisMin(-10);
+        /*mRenderer.setYAxisMin(-10);
         mRenderer.setYAxisMax(40);
         mRenderer.setZoomEnabled(false, false);
-        mRenderer.setPanEnabled(false, false);
+        mRenderer.setPanEnabled(false, false);*/
         mRenderer.setMarginsColor(Color.WHITE);
         mRenderer.setLegendTextSize(metrics.scaledDensity * 16);
         mRenderer.setApplyBackgroundColor(true);
@@ -126,7 +122,7 @@ public class MeteoclimaChartActivity extends AppCompatActivity {
         mRenderer.setShowGrid(true);
         mRenderer.setAxisTitleTextSize(metrics.scaledDensity * 14);
 
-        mRenderer.setXTitle("Time (HH:mm)");
+        mRenderer.setXTitle("Time");
         mRenderer.setMargins(new int[]{(int) metrics.scaledDensity * 30, (int) metrics.scaledDensity * 45, (int)metrics.scaledDensity * 100, (int)metrics.scaledDensity * 20});
 
 
