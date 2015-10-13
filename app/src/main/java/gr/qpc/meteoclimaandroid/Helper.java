@@ -46,7 +46,6 @@ public class Helper {
     public static String url_server = "http://api.openweathermap.org/data/2.5/forecast";
 
     // JSON Node names
-    public static final String TAG_SUCCESS = "success";
     public static final String TAG_LOCATIONS = "list";
     public static final String TAG_MAIN = "main";
     public static final String TAG_ID = "dt";
@@ -55,12 +54,12 @@ public class Helper {
     public static final String TAG_MONTH = "mm";
     public static final String TAG_DAY = "dd";
     public static final String TAG_HOUR = "hh";
-    public static final String TAG_LAT = "lat";
-    public static final String TAG_LON = "lon";
     public static final String TAG_MSLP = "pressure";
     public static final String TAG_TEMP = "temp";
     public static final String TAG_RAIN = "rain";
+    public static final String TAG_RAIN_3H = "3h";
     public static final String TAG_SNOW = "snow";
+    public static final String TAG_SNOW_3H = "3h";
     public static final String TAG_WIND = "wind";
     public static final String TAG_WINDSP = "speed";
     public static final String TAG_WINDDIR = "deg";

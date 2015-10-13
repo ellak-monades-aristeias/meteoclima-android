@@ -141,12 +141,18 @@ public class MeteoclimaDailyFragment extends Fragment {
                     String temp = main.getString(Helper.TAG_TEMP);
                     String mslp = main.getString(Helper.TAG_MSLP);
                     String rain = "0.0";
-                    if (main.has(Helper.TAG_RAIN)) {
-                        rain = main.getString(Helper.TAG_RAIN);
+                    if (jlist.has(Helper.TAG_RAIN)) {
+                        JSONObject rainJson = jlist.getJSONObject(Helper.TAG_RAIN);
+                        if (rainJson.has(Helper.TAG_RAIN_3H)) {
+                            rain = rainJson.getString(Helper.TAG_RAIN_3H);
+                        }
                     }
                     String snow = "0.0";
-                    if (main.has(Helper.TAG_SNOW)) {
-                        snow = main.getString(Helper.TAG_SNOW);
+                    if (jlist.has(Helper.TAG_SNOW)) {
+                        JSONObject snowJson = jlist.getJSONObject(Helper.TAG_SNOW);
+                        if (snowJson.has(Helper.TAG_SNOW_3H)) {
+                            snow = snowJson.getString(Helper.TAG_SNOW_3H);
+                        }
                     }
                     String relhum = main.getString(Helper.TAG_RELHUM);
 
