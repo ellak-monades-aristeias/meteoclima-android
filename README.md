@@ -16,6 +16,10 @@ The source code of the original full working version of the app is available at 
 
 You can read more details on the <a href="https://github.com/ellak-monades-aristeias/meteoclima-android/wiki">Wiki</a> (in Greek).
 
+Readme file for users (in Greek): https://github.com/ellak-monades-aristeias/meteoclima-android/blob/master/README_USERS.md
+
+Readme file for developers (in Greek): https://github.com/ellak-monades-aristeias/meteoclima-android/blob/master/README_DEVS.md
+
 (Greek - Ελληνικά)
 
 Το meteoclima-android μία open source εφαρμογή πρόγνωση καιρού για το Android που σχεδιάστικε για να προβάλλει τα δεδομένα που παρέχονται από την Ομάδα Ατμοσφαιρικής και Κλιματικής Δυναμικής του Χαροκοπείου Πανεπιστημίου Αθηνών (ACDG / HUA).
@@ -31,5 +35,23 @@ You can read more details on the <a href="https://github.com/ellak-monades-arist
 Η κώδικας της αρχικής εφαρμογής είναι διαθέσιμος εδώ https://github.com/ellak-monades-aristeias/meteoclima-android/tree/73eb2b70324187f065809d509d92a1e4beaffc08 (το depository την ημερομηνία 5 Οκτωβρίου 2015)
 
 Περισσότερες πληροφορίες μπορείτε να βρείτε στο <a href="https://github.com/ellak-monades-aristeias/meteoclima-android/wiki">Wiki</a> 
+
+Αρχείο Readme για χρήστες: https://github.com/ellak-monades-aristeias/meteoclima-android/blob/master/README_USERS.md
+
+Αρχείο Readme για developers: https://github.com/ellak-monades-aristeias/meteoclima-android/blob/master/README_DEVS.md
+
+**Πίνακας Παραδοτέων**
+
+<table>
+<tr>
+<th>No</th><th>Τίτλος Παραδοτέου</th><th>URLs</th>
+</tr>
+<tr>
+<td>1</td><td>Οι κατάλληλα διαμορφωμένες βάσεις δεδομένων των ατμοσφαιρικών συνθηκών που επικρατούν στην Ευρώπη και την Ελλάδα.</td><td>https://github.com/ellak-monades-aristeias/meteoclima-android/wiki , https://github.com/ellak-monades-aristeias/meteoclima-android/tree/master/server-side</td>
+</tr>
+<tr>
+<td>2</td><td>O πηγαίος κώδικας της εφαρμογής και το τελικό εκτελέσιμο πακέτο αρχείων (apk)</td><td>https://github.com/ellak-monades-aristeias/meteoclima-android/wiki/Η-Android-Εφαρμογή-Πρόγνωσης-Καιρού , https://github.com/ellak-monades-aristeias/meteoclima-android</td>
+</tr>
+</table>
 
 Κώδικας με άδεια <a href="https://github.com/ellak-monades-aristeias/meteoclima-android/blob/master/LICENSE_GR.pdf">EUPL v1.1</a> και περιεχομένο με <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC-BY-SA 4.0</a>.
